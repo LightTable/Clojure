@@ -15,7 +15,6 @@
 
 (defn try-read [rdr]
   (when rdr
-    (println "READING")
     (reader/read rdr false nil)))
 
 (defn lined-read [string]
