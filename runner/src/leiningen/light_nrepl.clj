@@ -14,11 +14,12 @@
         init (if-let [cur-init (-> project :repl-options :init)]
                (list 'do cur-init init)
                init)
-        profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.0.8"]]
+        profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.0.9"]
+                                 [org.clojure/tools.reader "0.7.10"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                  :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]
-    (println "final project: " (pr-str (:repl-options project)))
+    (println "final project: " (pr-str (:dependencies project)))
       project))
 
 (defn find-clojure-version [proj]
