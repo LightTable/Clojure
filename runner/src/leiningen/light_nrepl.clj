@@ -16,7 +16,7 @@
                init)
         profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.0.8"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
-                                 :init init}}
+                                 :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]
     (println "final project: " (pr-str (:repl-options project)))
       project))

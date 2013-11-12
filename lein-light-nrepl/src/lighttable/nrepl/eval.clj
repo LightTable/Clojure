@@ -9,17 +9,17 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :refer [interruptible-eval *msg*]]
             [clojure.tools.nrepl.misc :refer [response-for returning]]
-            [ibdknox.tools.reader :as reader]
-            [ibdknox.tools.reader.reader-types :as rt])
+            [clojure.tools.reader :as reader]
+            [clojure.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
 (defn try-read [rdr]
   (when rdr
-    (reader/read rdr false nil)))
+    (reader/read rdr false ::EOF)))
 
 (defn lined-read [string]
   (let [rdr (rt/indexing-push-back-reader string)]
-    (take-while identity (repeatedly #(try-read rdr)))))
+    (take-while #(not= ::EOF %) (repeatedly #(try-read rdr)))))
 
 (defn find-form [forms pos]
   (let [cur-line (inc (:line pos))
@@ -65,6 +65,7 @@
           (:result opts)) (str "atom[" @res "]")
      (instance? clojure.lang.Atom res) (str "atom")
      ;(is-non-clojure? res) (str res)
+     (and (string? res) (:verbatim opts)) res
      :else (pr-str res))))
 
 (defn truncate [v]
@@ -79,14 +80,22 @@
        :result (if (:verbatim opts)
                  res
                  (clean-serialize res opts))})
-      (catch Exception e
-        (let [trace (exception/clean-trace e)
-              msg (or (.getMessage e) (str e))]
-          {:meta (meta f)
-           :form f
-           :result msg
-           :stack trace
-           :ex true}))))
+    (catch Exception e
+      (let [trace (exception/clean-trace e)
+            msg (or (.getMessage e) (str e))]
+        {:meta (meta f)
+         :form f
+         :result msg
+         :stack trace
+         :ex true}))
+    (catch AssertionError e
+      (let [trace (exception/clean-trace e)
+            msg (or (.getMessage e) (str e))]
+        {:meta (meta f)
+         :form f
+         :result msg
+         :stack trace
+         :ex true}))))
 
 (defn require|create-ns [ns]
   (try
@@ -153,7 +162,7 @@
         cur-ns (or cur-ns (file->ns path) "user")]
     cur-ns))
 
-(defmethod core/handle "editor.eval.clj" [{:keys [ns path code meta pos transport session] :as msg}]
+(defmethod core/handle "editor.eval.clj" [{:keys [ns path code meta pos transport session verbatim] :as msg}]
   (try
   (let [cur-ns (normalize-ns ns path)
         extra-bindings {#'*ns* (require|create-ns (symbol cur-ns))
@@ -176,6 +185,7 @@
                                                                    cur-ns
                                                                    {:allow-var? true
                                                                     :no-form true
+                                                                    :verbatim (:verbatim meta)
                                                                     :print-length (:print-length msg)
                                                                     :result true})
                                                           (assoc :meta (or meta {})))))

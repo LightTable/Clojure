@@ -6,6 +6,7 @@
             [clojure.test :as test]
             [clojure.walk :as walk]
             [cljs.compiler :as compiler]
+            [cljs.env :as cljs-env]
             [ibdknox.analyzer :as cljs]
             [clojure.set :as set]))
 
@@ -81,6 +82,15 @@
          ~@body))
     `(fn ~params ~@body)))
 
+(defmacro fn*++ [params & body]
+  (if (vector? params)
+    (let [cap-params (all-syms params)]
+      `(fn* ~params
+         (swap! *caps* merge (restructure '~cap-params ~cap-params))
+         nil
+         ~@body))
+    `(fn* ~params ~@body)))
+
 (defmacro defmacro++ [& args]
   `(defmacro ~@args))
 
@@ -114,6 +124,7 @@
                       'doseq 'lighttable.nrepl.sonar/doseq++
                       'defn 'lighttable.nrepl.sonar/defn++
                       'fn 'lighttable.nrepl.sonar/fn++
+                      'fn* 'lighttable.nrepl.sonar/fn*++
                       'defrecord 'lighttable.nrepl.sonar/defrecord++
                       'deftype 'lighttable.nrepl.sonar/deftype++
                       'macroexpand-1 'lighttable.nrepl.sonar/macroexpand-1++
@@ -149,8 +160,11 @@
 
 (defn ->usages [forms]
   (let [non-symbol-forms (filter #(and (not (symbol? %))
+                                       (not (nil? %))
                                        (not (deref-form? %))) forms)
-        vars (cat (by-op-type :var) (cljs/analyze {:locals {}} non-symbol-forms))]
+        vars (cat (by-op-type :var)
+                  (cljs-env/with-compiler-env (cljs-env/default-compiler-env)
+                                              (cljs/analyze {:locals {}} non-symbol-forms)))]
     (reduce (fn [all cur]
               (let [root (cur :info)
                     root (or (:sym root) (:name root))

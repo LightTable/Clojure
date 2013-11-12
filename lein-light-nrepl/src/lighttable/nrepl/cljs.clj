@@ -10,6 +10,7 @@
             [cljs.compiler :as comp]
             [cljs.analyzer :as cljs]
             [cljs.source-map :as sm]
+            [cljs.env :as cljs-env :refer [with-compiler-env]]
             [clojure.test :as test]
             [cljs.closure :as cljsc]
             [clojure.java.io :as io]
@@ -18,8 +19,8 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :refer [interruptible-eval *msg*]]
             [clojure.tools.nrepl.misc :refer [response-for returning]]
-            [ibdknox.tools.reader :as reader]
-            [ibdknox.tools.reader.reader-types :as rt])
+            [clojure.tools.reader :as reader]
+            [clojure.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
 
@@ -64,13 +65,13 @@
          (recur g' (conj l n) (union s' (intersection (no-incoming g') m)))))))
 
 
-(def env (atom {}))
+(def compiler-env (cljs-env/default-compiler-env))
+(def build-env (atom {}))
 
 (defn ns->cljs-file [s]
   (str (string/replace (munge (str s)) \. \/) ".cljs"))
 
 (defn file|resource->file [file]
-  (println "This is a file: " file)
   (cond
    (not file) nil
    (fs/exists? file) file
@@ -94,8 +95,8 @@
                      #'comp/*cljs-gen-line* (atom 0)
                      #'cljs/*cljs-file* file#
                      #'*source-path* file#}
-       (cljs.compiler/with-core-cljs
-        ~@body))))
+        (cljs.compiler/with-core-cljs
+         ~@body))))
 
 (defn with-forms [{:keys [file] :as cur}]
   (let [file (file|resource->file file)]
@@ -108,17 +109,16 @@
             :mtime mtime))))))
 
 (defn analyze [env form]
-  (let [ast (cljs/analyze (assoc env :ns (@cljs/namespaces cljs/*cljs-ns* {})) form)]
+  (let [ast (cljs/analyze (assoc env :ns (or (cljs/get-namespace cljs/*cljs-ns*) {})) form)]
     (set! *ns* (create-ns cljs/*cljs-ns*))
     ast))
 
 (defn with-analysis [{:keys [forms file] :as cur}]
-  (println "ANALYZING")
   (when forms
     (with-cljs-env cur
       (let [env (assoc (cljs/empty-env) :file file)]
         (let [results (mapv (partial analyze env) forms)
-              ns (@cljs/namespaces cljs/*cljs-ns* {})]
+              ns (or (cljs/get-namespace cljs/*cljs-ns*) {})]
           (assoc cur
             :analysis results
             :name (-> ns :name)
@@ -142,7 +142,6 @@
           :source-map sm)))))
 
 (defn cljs-dep [{:keys [ns file]}]
-  (println "compiling: " file ns)
   (when-let [dep (-> {:file (or file (ns->cljs-file ns))}
                      (with-forms)
                      (with-analysis)
@@ -150,9 +149,7 @@
     {(-> dep :name) dep}))
 
 (defn js-dep [{:keys [ns]}]
-  (println "getting js: " ns)
   (when-let [dep (first (cljsc/js-dependencies {} [(str ns)]))]
-    (println dep)
     (let [primary (-> dep :provides first symbol)
           deps (:requires dep)
           deps (if (not= ns 'goog)
@@ -291,28 +288,22 @@
                       (vals namespaces))]
     (apply dissoc namespaces moded)))
 
-(defn as-viewable [compiled]
-  (let [compiled (dissoc compiled :namespaces)
-        compiled (if (:ordered compiled)
-                   (assoc compiled :ordered (mapv #(dissoc % :analysis :ns) (:ordered compiled)))
-                   compiled)]
-    compiled))
-
 (defmethod core/handle "cljs.compile" [{:keys [ignore files nss merged? cljsbuild? session] :as msg}]
-  (let [compiled  (-> (compile-all {:ignore (or ignore [])
-                                    :nss nss
-                                    :files files
-                                    :available (remove-modified @env)})
-                      (with-provides)
-                      (with-ordered-deps)
-                      (with-merged-js))
-        final (if merged?
-                (select-keys compiled [:provides :missing :cycles :js :source-map])
-                (-> (select-keys compiled [:provides :missing :cycles :js :source-map])
-                    (assoc :ordered (mapv #(select-keys % [:name :js :source-map]) (:ordered compiled)))))]
-    (reset! env (:namespaces compiled))
-    (core/respond msg :cljs.compile.results final)
-    @session))
+  (with-compiler-env compiler-env
+    (let [compiled  (-> (compile-all {:ignore (or ignore [])
+                                      :nss nss
+                                      :files files
+                                      :available (remove-modified @build-env)})
+                        (with-provides)
+                        (with-ordered-deps)
+                        (with-merged-js))
+          final (if merged?
+                  (select-keys compiled [:provides :missing :cycles :js :source-map])
+                  (-> (select-keys compiled [:provides :missing :cycles :js :source-map])
+                      (assoc :ordered (mapv #(select-keys % [:name :js :source-map]) (:ordered compiled)))))]
+      (reset! build-env (:namespaces compiled))
+      (core/respond msg :cljs.compile.results final)
+      @session)))
 
 
 (comment
@@ -340,7 +331,6 @@
 
   (let [cur (decode sms)
         cur (first (vals cur))]
-    (println cur)
     (offset-source-map cur 10)
     )
   (clojure.data.json/read-str sms :key-fn keyword)
@@ -372,7 +362,7 @@
   )
 
 (defn eval-cljs [env f]
-  (let [stored-ns (@cljs/namespaces cljs/*cljs-ns*)
+  (let [stored-ns (cljs/get-namespace cljs/*cljs-ns*)
         env (assoc env :ns stored-ns)
         ast (cljs/analyze env f)]
     (when (= (:op ast) :ns)
@@ -386,15 +376,16 @@
                (let [file (:file env)]
                  (when (and file (fs/exists? file))
                    (cljs/analyze-file (str "file://" file)))
-                 (comp/emit-str (cljs/analyze (assoc env :ns (@cljs/namespaces cljs/*cljs-ns* {})) f)))))}))
+                 (comp/emit-str (cljs/analyze (assoc env :ns (or (cljs/get-namespace cljs/*cljs-ns*) {})) f)))))}))
 
 (defn init-cljs [ns path]
-  (when-not (@cljs/namespaces ns)
-    (binding [cljs/*cljs-ns* 'cljs.user]
-      (comp/with-core-cljs
-       (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
-       (when (and path (fs/exists? path))
-         (cljs/analyze-file (str "file://" path)))))))
+  (when-not (cljs/get-namespace ns)
+    (with-compiler-env compiler-env
+      (binding [cljs/*cljs-ns* 'cljs.user]
+        (comp/with-core-cljs
+         (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
+         (when (and path (fs/exists? path))
+           (cljs/analyze-file (str "file://" path))))))))
 
 (defmethod core/handle "editor.eval.cljs" [{:keys [ns path code pos meta transport session] :as msg}]
     (let [ns (str ns)
@@ -417,13 +408,14 @@
                       [(eval/find-form forms pos)])]
           (when pos
             (core/respond msg :editor.eval.cljs.location (clojure.core/meta (first forms))))
-          (comp/with-core-cljs
-           (if-not (first forms)
-             (core/respond msg :editor.eval.cljs.no-op {})
-             (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
-                                                                         (eval-cljs env f)))
-                                                       :ns cljs/*cljs-ns*
-                                                       :meta (or meta {})})))))
+          (with-compiler-env compiler-env
+            (comp/with-core-cljs
+             (if-not (first forms)
+               (core/respond msg :editor.eval.cljs.no-op {})
+               (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
+                                                                           (eval-cljs env f)))
+                                                         :ns cljs/*cljs-ns*
+                                                         :meta (or meta {})}))))))
    (catch Exception e
       (let [ex (ex-data e)]
         (core/respond msg :editor.eval.cljs.exception {:stack (exception/clean-trace e)
