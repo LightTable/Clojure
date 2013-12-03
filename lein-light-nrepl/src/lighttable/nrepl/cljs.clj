@@ -86,12 +86,12 @@
 
 (defn source-map-ref []
   (if-let [c (resolve 'cljs.compiler/*source-map-data*)]
-    (@c :source-map)
+    (@@c :source-map)
     @(resolve 'comp/*cljs-source-map*)))
 
 (defn gen-line []
   (if-let [c (resolve 'cljs.compiler/*source-map-data*)]
-    (@c :gen-line)
+    (@@c :gen-line)
     @(resolve 'comp/*cljs-gen-line*)))
 
 (defmacro with-cljs-env [cur & body]
