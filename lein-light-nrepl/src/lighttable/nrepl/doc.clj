@@ -2,6 +2,7 @@
   (:require [lighttable.nrepl.core :as core]
             [lighttable.nrepl.eval :as eval]
             [lighttable.nrepl.cljs :as cljs]
+            [cljs.env :as env]
             [cljs.compiler :as comp]
             [cljs.analyzer :as ana]))
 
@@ -53,23 +54,25 @@
       (format-result x)))
 
 (defn cljs-find-doc [search]
-    (let [ms (mapcat #(->> (:defs %)
-                           (vals)
-                           (sort-by :name)
-                           (map clean-meta)) (vals @ana/namespaces))]
-      (for [m ms
-              :when (and (:doc m)
-                         (not (:private m))
-                         (or (str-contains? (:doc m) search)
-                             (str-contains? (str (:ns m)) search)
-                             (str-contains? (str (:name m)) search)))]
-               (format-cljs-result m))))
+  (env/with-compiler-env cljs/compiler-env
+                      (let [ms (mapcat #(->> (:defs %)
+                                             (vals)
+                                             (sort-by :name)
+                                             (map clean-meta)) (-> @env/*compiler* :cljs.analyzer/namespaces vals))]
+                        (for [m ms
+                              :when (and (:doc m)
+                                         (not (:private m))
+                                         (or (str-contains? (:doc m) search)
+                                             (str-contains? (str (:ns m)) search)
+                                             (str-contains? (str (:name m)) search)))]
+                          (format-cljs-result m)))))
 
 (defn get-cljs-doc [nsp sym]
-  (->
-   (ana/resolve-var {:ns (@ana/namespaces (symbol nsp))} (symbol sym))
-   (clean-meta)
-   (format-cljs-result)))
+  (env/with-compiler-env cljs/compiler-env
+                      (->
+                       (ana/resolve-var {:ns ((-> @env/*compiler* :cljs.analyzer/namespaces vals) (symbol nsp))} (symbol sym))
+                       (clean-meta)
+                       (format-cljs-result))))
 
 (defmethod core/handle "editor.clj.doc" [{:keys [ns sym loc session path] :as msg}]
   (let [ns (eval/normalize-ns ns path)
@@ -80,15 +83,16 @@
   @session)
 
 (defmethod core/handle "editor.cljs.doc" [{:keys [ns sym loc session path] :as msg}]
-  (let [ns (eval/normalize-ns ns path)]
-    (eval/require|create-ns (symbol ns))
-    (cljs/init-cljs (symbol ns) path)
-    (let [clj (get-doc 'clojure.core sym)
-          res (if (:macro clj)
-                clj
-                (get-cljs-doc ns sym))
-          res (when res (assoc res :loc loc))]
-      (core/respond msg "editor.cljs.doc" res)))
+  (env/with-compiler-env cljs/compiler-env
+                         (let [ns (eval/normalize-ns ns path)]
+                           (eval/require|create-ns (symbol ns))
+                           (cljs/init-cljs (symbol ns) path)
+                           (let [clj (get-doc 'clojure.core sym)
+                                 res (if (:macro clj)
+                                       clj
+                                       (get-cljs-doc ns sym))
+                                 res (when res (assoc res :loc loc))]
+                             (core/respond msg "editor.cljs.doc" res))))
   @session)
 
 (defmethod core/handle "docs.clj.search" [{:keys [search session] :as msg}]

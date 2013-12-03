@@ -84,19 +84,37 @@
 
 (def cljs-ns-keys #{:uses :requires :uses-macros :requires-macros :name :imports})
 
+(defn source-map-ref []
+  (if-let [c (resolve 'cljs.compiler/*source-map-data*)]
+    (@c :source-map)
+    @(resolve 'comp/*cljs-source-map*)))
+
+(defn gen-line []
+  (if-let [c (resolve 'cljs.compiler/*source-map-data*)]
+    (@c :gen-line)
+    @(resolve 'comp/*cljs-gen-line*)))
+
 (defmacro with-cljs-env [cur & body]
   `(let [file# (:file ~cur)
-         cur-ns# (or (-> ~cur :ns :name) 'cljs.user)]
-     (with-bindings {#'*ns* (eval/require|create-ns cur-ns#)
-                     #'cljs/*cljs-ns* cur-ns#
-                     #'*file* file#
-                     #'comp/*cljs-source-map* (atom (sorted-map))
-                     #'comp/*cljs-gen-col* (atom 0)
-                     #'comp/*cljs-gen-line* (atom 0)
-                     #'cljs/*cljs-file* file#
-                     #'*source-path* file#}
-        (cljs.compiler/with-core-cljs
-         ~@body))))
+         cur-ns# (or (-> ~cur :ns :name) 'cljs.user)
+         source-map-bindings# (if (resolve 'cljs.compiler/*source-map-data*)
+                                {(resolve 'cljs.compiler/*source-map-data*) (atom {:source-map (sorted-map)
+                                                                 :gen-col 0
+                                                                 :gen-line 0})}
+                                {(resolve 'cljs.compiler/*cljs-source-map*) (atom (sorted-map))
+                                 (resolve 'cljs.compiler/*cljs-gen-col*) (atom 0)
+                                 (resolve 'cljs.compiler/*cljs-gen-line*) (atom 0)}
+                                )
+         bindings# (merge source-map-bindings#
+                          {#'*ns* (eval/require|create-ns cur-ns#)
+                           #'cljs/*cljs-ns* cur-ns#
+                           #'*file* file#
+                           #'cljs/*cljs-file* file#
+                           #'*source-path* file#})]
+     (with-bindings bindings#
+       (with-compiler-env compiler-env
+         (cljs.compiler/with-core-cljs
+          ~@body)))))
 
 (defn with-forms [{:keys [file] :as cur}]
   (let [file (file|resource->file file)]
@@ -132,13 +150,13 @@
   (when analysis
     (with-cljs-env cur
       (let [js (reduce #(str % %2 "\n") "" (map comp/emit-str analysis))
-            sm (sm/encode {file @comp/*cljs-source-map*}
-                         {:lines (inc @comp/*cljs-gen-line*)
+            sm (sm/encode {file (source-map-ref)}
+                         {:lines (inc (gen-line))
                           :file  (str file ".map")})]
         (assoc cur
           :js js
-          :lines (inc @comp/*cljs-gen-line*)
-          :source-map-internal @comp/*cljs-source-map*
+          :lines (inc (gen-line))
+          :source-map-internal (source-map-ref)
           :source-map sm)))))
 
 (defn cljs-dep [{:keys [ns file]}]
