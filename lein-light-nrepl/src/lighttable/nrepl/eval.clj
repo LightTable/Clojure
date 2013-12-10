@@ -109,7 +109,8 @@
       )))
 
 (defn prep-code [{:keys [code meta]}]
-  (if-not (or meta (not (:start meta)))
+  (if (or (not meta)
+          (not (:start meta)))
     code
     (str (reduce str "" (repeat (:start meta 0) "\n"))
          code)))
