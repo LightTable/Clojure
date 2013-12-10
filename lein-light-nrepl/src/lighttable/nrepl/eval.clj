@@ -109,9 +109,9 @@
       )))
 
 (defn prep-code [{:keys [code meta]}]
-  (if-not meta
+  (if-not (or meta (not (:start meta)))
     code
-    (str (reduce str "" (repeat (:start meta) "\n"))
+    (str (reduce str "" (repeat (:start meta 0) "\n"))
          code)))
 
 (defn watch [v meta]
@@ -151,10 +151,11 @@
         e-str (str e)]
     {:line (or (-> (re-seq #"starting at line ([\d]+)" e-str) first second)
                (:line pos)
-               (-> stack
-                   (find-eval-frame)
-                   (or (aget stack 0))
-                   (.getLineNumber)))}))
+               (when stack
+                 (-> stack
+                     (find-eval-frame)
+                     (or (aget stack 0))
+                     (.getLineNumber))))}))
 
 (defn normalize-ns [ns path]
   (let [ns (str ns)
