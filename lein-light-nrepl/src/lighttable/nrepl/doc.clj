@@ -74,15 +74,15 @@
                        (clean-meta)
                        (format-cljs-result))))
 
-(defmethod core/handle "editor.clj.doc" [{:keys [ns sym loc session path] :as msg}]
+(defmethod core/handle "editor.clj.doc" [{:keys [ns sym loc session path result-type] :as msg}]
   (let [ns (eval/normalize-ns ns path)
         _ (eval/require|create-ns (symbol ns))
         res (get-doc ns sym)
-        res (when res (assoc res :loc loc))]
+        res (when res (assoc res :loc loc :result-type result-type))]
     (core/respond msg "editor.clj.doc" res))
   @session)
 
-(defmethod core/handle "editor.cljs.doc" [{:keys [ns sym loc session path] :as msg}]
+(defmethod core/handle "editor.cljs.doc" [{:keys [ns sym loc session path result-type] :as msg}]
   (env/with-compiler-env cljs/compiler-env
                          (let [ns (eval/normalize-ns ns path)]
                            (eval/require|create-ns (symbol ns))
@@ -91,7 +91,7 @@
                                  res (if (:macro clj)
                                        clj
                                        (get-cljs-doc ns sym))
-                                 res (when res (assoc res :loc loc))]
+                                 res (when res (assoc res :loc loc :result-type result-type))]
                              (core/respond msg "editor.cljs.doc" res))))
   @session)
 
