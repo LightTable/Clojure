@@ -70,7 +70,7 @@
 (defn get-cljs-doc [nsp sym]
   (env/with-compiler-env cljs/compiler-env
                       (->
-                       (ana/resolve-var {:ns ((-> @env/*compiler* :cljs.analyzer/namespaces vals) (symbol nsp))} (symbol sym))
+                       (ana/resolve-var {:ns ((-> @env/*compiler* :cljs.analyzer/namespaces) (symbol nsp))} (symbol sym))
                        (clean-meta)
                        (format-cljs-result))))
 
