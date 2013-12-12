@@ -13,5 +13,6 @@
                  [fs "1.3.3"]
                  [org.clojure/clojurescript "0.0-2080"
                    :exclusions [org.apache.ant/ant]]
+                 [com.cemerick/pomegranate "0.2.0"]
                  ]
   :jvm-opts ["-Xmx1g"])
