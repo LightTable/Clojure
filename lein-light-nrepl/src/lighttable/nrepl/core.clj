@@ -7,7 +7,18 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clj-stacktrace.repl :refer [pst+]]
             [fs.core :as fs]
-            [clojure.repl :as repl]))
+            [clojure.repl :as repl]
+            [cemerick.pomegranate :as pomegranate]))
+
+(defn depend-on [{:keys [libs paths nss]}]
+  (pomegranate/add-dependencies
+   :coordinates libs
+   :repositories (merge cemerick.pomegranate.aether/maven-central
+                        {"clojars" "http://clojars.org/repo"}))
+  (doseq [path paths]
+    (pomegranate/add-classpath path))
+  (for [ns nss]
+    (require ns)))
 
 (def ^{:dynamic true} *ltmsg* nil)
 (def server (atom nil))
