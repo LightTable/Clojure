@@ -1,0 +1,5 @@
+{:name "Clojure"
+ :author "Chris Granger"
+ :source "https://github.com/Kodowa/LightTable-Clojure"
+ :desc "Clojure integration for Light Table"
+ :behaviors "clojure.behaviors"}
