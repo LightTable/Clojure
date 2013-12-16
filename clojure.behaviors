@@ -44,10 +44,7 @@
                     :lt.objs.langs.clj/finish-update-hints
                     :lt.objs.langs.clj/use-hints]
 
-  :editor.clj.common [:lt.objs.langs.clj/clj-result.inline
-                      :lt.objs.langs.clj/clj-result.statusbar
-                      :lt.objs.langs.clj/clj-result.replace
-                      :lt.objs.langs.clj/on-result-set-ns
+  :editor.clj.common [:lt.objs.langs.clj/on-result-set-ns
                       :lt.objs.langs.clj/no-op
                       [:lt.object/add-tag :watchable]
                       [:lt.object/add-tag :docable]
@@ -64,6 +61,9 @@
                :lt.objs.langs.clj/eval-print
                :lt.objs.langs.clj/eval-print-err
                :lt.objs.langs.clj/clj-result
+               :lt.objs.langs.clj/clj-result.inline
+               :lt.objs.langs.clj/clj-result.statusbar
+               :lt.objs.langs.clj/clj-result.replace
                :lt.objs.langs.clj/clj-exception
                :lt.objs.langs.clj/clj-watch-result
                :lt.objs.langs.clj/clj-watch-src
@@ -76,6 +76,9 @@
                 :lt.objs.langs.clj/exec.cljs!
                 :lt.objs.langs.clj/on-code
                 :lt.objs.langs.clj/cljs-result
+                :lt.objs.langs.clj/cljs-result.inline
+                :lt.objs.langs.clj/cljs-result.statusbar
+                :lt.objs.langs.clj/cljs-result.replace
                 :lt.objs.langs.clj/cljs-exception
                 :lt.objs.langs.clj/cljs-watch-result
                 :lt.objs.langs.clj/cljs-watch-src
@@ -91,6 +94,9 @@
                          :lt.objs.instarepl/dirty-parent
                          :lt.objs.instarepl/eval-on-change
                          :lt.objs.instarepl/close-parent
+                         :lt.objs.langs.clj/clj-result.inline
+                         :lt.objs.langs.clj/clj-result.statusbar
+                         :lt.objs.langs.clj/clj-result.replace
                          :lt.objs.langs.clj/clj-watch-result
                          :lt.objs.langs.clj/clj-watch-src
                          :lt.objs.langs.clj/clj-watch-custom-src
