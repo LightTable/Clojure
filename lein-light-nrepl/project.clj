@@ -14,5 +14,6 @@
                  [org.clojure/clojurescript "0.0-2120"
                    :exclusions [org.apache.ant/ant]]
                  [com.cemerick/pomegranate "0.2.0"]
+                 [clojure-complete "0.2.3"]
                  ]
   :jvm-opts ["-Xmx1g"])

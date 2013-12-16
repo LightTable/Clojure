@@ -22,7 +22,7 @@
                         :lt.objs.langs.clj/clj-result
                         :lt.objs.langs.clj/clj-exception
                         :lt.objs.langs.clj/install-dependencies
-                        (:lt.objs.langs.clj/depend-on {:libs [[clojure-complete "0.2.3"]]
+                        (:lt.objs.langs.clj/depend-on {:libs []
                                                        :paths ["/home/jamie/light-table-core/src"]
                                                        :nss [lt.objs.langs.clj.auto-complete]})]
 
