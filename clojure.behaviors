@@ -5,7 +5,7 @@
 
   :clients [:lt.objs.langs.clj/handle-cancellation]
 
-  :plugin-file [:lt.objs.langs.clj/build-cljs-plugin
+  :plugin.file [:lt.objs.langs.clj/build-cljs-plugin
                 :lt.objs.langs.clj/plugin-compile-results]
 
   :sidebar.docs.search [:lt.objs.langs.clj/clj-doc-search
