@@ -605,6 +605,7 @@
                   :triggers #{:focus
                               :editor.eval.clj.result
                               :editor.eval.cljs.result}
+                  :debounce 1000
                   :reaction (fn [editor res]
                               (when (not= :hints (-> res :meta :result-type)) ;; dont recurse endlessly
                                 (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
