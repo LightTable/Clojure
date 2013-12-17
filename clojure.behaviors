@@ -1,5 +1,5 @@
 {:+
- {:app [(:lt.objs.plugins/load-js "jshint_compiled.js")]
+ {:app [(:lt.objs.plugins/load-js "clojure_compiled.js")]
 
   :clojure.lang [:lt.objs.langs.clj/connect
                  :lt.objs.langs.clj/eval!
