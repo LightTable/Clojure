@@ -614,12 +614,8 @@
 (object/behavior* ::start-update-hints
                   :triggers #{:editor.clj.hints.update}
                   :reaction (fn [editor res]
-                              (let [info (:info @editor)
-                                    type (-> info :mime mime->type)
-                                    code (case type
-                                           "clj" `(lighttable.nrepl.auto-complete/clj-hints)
-                                           "cljs" `(lighttable.nrepl.auto-complete/cljs-hints))
-                                    info (assoc info
+                              (let [code `(lighttable.nrepl.auto-complete/hints)
+                                    info (assoc (:info @editor)
                                            :code (pr-str code)
                                            :meta {:verbatim true
                                                   :result-type :hints})
@@ -630,26 +626,30 @@
                                                                  :create try-connect})
                                               command info :only editor))))
 
+(defn- walk-vals [f m]
+  (into {}
+        (for [[k v] m] [k (f m)])))
+
 (object/behavior* ::finish-update-hints
                   :triggers #{:editor.eval.clj.result.hints}
                   :reaction (fn [editor res]
                               (object/merge! (-> @editor :client :default)
-                                             {::hints (into {}
-                                                            (for [[ns hints] (-> res :results (nth 0) :result)]
-                                                              [ns (for [hint hints] {:completion hint})]))})))
+                                             {::hints (-> res :results (nth 0) :result)})))
 
 (object/behavior* ::use-local-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
                               (let [clj-hints (-> @editor :client :default deref ::hints)
-                                    ns (-> @editor :info :ns)]
-                                (concat (get clj-hints (str ns)) hints))))
+                                    ns (-> @editor :info :ns)
+                                    type (-> @editor :info :mime mime->type)]
+                                (concat (get-in clj-hints [type (str ns)]) hints))))
 
 (object/behavior* ::use-global-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
-                              (let [clj-hints (-> @editor :client :default deref ::hints)]
-                                (concat (get clj-hints "") hints))))
+                              (let [clj-hints (-> @editor :client :default deref ::hints)
+                                    type (-> @editor :info :mime mime->type)]
+                                (concat (get-in clj-hints [type ""]) hints))))
 
 ;;****************************************************
 ;; Jump to definition
