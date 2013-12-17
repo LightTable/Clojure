@@ -602,10 +602,9 @@
 ;;****************************************************
 
 (object/behavior* ::trigger-update-hints
-                  :triggers #{:focus
-                              :editor.eval.clj.result
+                  :triggers #{:editor.eval.clj.result
                               :editor.eval.cljs.result}
-                  :debounce 1000
+                  :debounce 100
                   :reaction (fn [editor res]
                               (when (not= :hints (-> res :meta :result-type)) ;; dont recurse endlessly
                                 (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
@@ -617,10 +616,9 @@
                   :reaction (fn [editor res]
                               (let [info (:info @editor)
                                     type (-> info :mime mime->type)
-                                    ns (:ns info)
                                     code (case type
-                                           "clj" `(lighttable.nrepl.auto-complete/clj-hints '~ns)
-                                           "cljs" `(lighttable.nrepl.auto-complete/cljs-hints '~ns))
+                                           "clj" `(lighttable.nrepl.auto-complete/clj-hints)
+                                           "cljs" `(lighttable.nrepl.auto-complete/cljs-hints))
                                     info (assoc info
                                            :code (pr-str code)
                                            :meta {:verbatim true
@@ -635,14 +633,23 @@
 (object/behavior* ::finish-update-hints
                   :triggers #{:editor.eval.clj.result.hints}
                   :reaction (fn [editor res]
-                              (object/merge! editor
-                                             {::hints (for [string (-> res :results (nth 0) :result)]
-                                                        {:completion string})})))
+                              (object/merge! (-> @editor :client :default)
+                                             {::hints (into {}
+                                                            (for [[ns hints] (-> res :results (nth 0) :result)]
+                                                              [ns (for [hint hints] {:completion hint})]))})))
 
-(object/behavior* ::use-hints
+(object/behavior* ::use-local-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
-                              (concat (::hints @editor) hints)))
+                              (let [clj-hints (-> @editor :client :default deref ::hints)
+                                    ns (-> @editor :info :ns)]
+                                (concat (get clj-hints (str ns)) hints))))
+
+(object/behavior* ::use-global-hints
+                  :triggers #{:hints+}
+                  :reaction (fn [editor hints]
+                              (let [clj-hints (-> @editor :client :default deref ::hints)]
+                                (concat (get clj-hints "") hints))))
 
 ;;****************************************************
 ;; Jump to definition

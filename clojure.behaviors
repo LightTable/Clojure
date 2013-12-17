@@ -41,7 +41,9 @@
                     :lt.objs.langs.clj/trigger-update-hints
                     :lt.objs.langs.clj/start-update-hints
                     :lt.objs.langs.clj/finish-update-hints
-                    :lt.objs.langs.clj/use-hints]
+                    :lt.objs.langs.clj/use-local-hints
+                    ;; :lt.objs.langs.clj/use-global-hints
+                    ]
 
   :editor.clj.common [:lt.objs.langs.clj/on-result-set-ns
                       :lt.objs.langs.clj/no-op
