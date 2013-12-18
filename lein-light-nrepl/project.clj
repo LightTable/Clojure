@@ -15,5 +15,6 @@
                    :exclusions [org.apache.ant/ant]]
                  [com.cemerick/pomegranate "0.2.0"]
                  [clojure-complete "0.2.3"]
+                 [cheshire "5.2.0"]
                  ]
   :jvm-opts ["-Xmx1g"])

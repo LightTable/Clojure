@@ -126,7 +126,11 @@
                   :triggers #{::message}
                   :reaction (fn [this msg]
                               (let [op (:op msg)
-                                    info (when (:data msg) (reader/read-string (:data msg)))]
+                                    encoding (:encoding msg)
+                                    info (when (:data msg)
+                                           (case encoding
+                                             "edn" (reader/read-string (:data msg))
+                                             "json" (js/JSON.parse (:data msg))))]
 
                                 (when (:new-session msg)
                                   (object/raise this :new-session (:new-session msg)))

@@ -602,46 +602,51 @@
 ;;****************************************************
 
 (object/behavior* ::trigger-update-hints
-                  :triggers #{:focus
-                              :editor.eval.clj.result
+                  :triggers #{:editor.eval.clj.result
                               :editor.eval.cljs.result}
+                  :debounce 100
                   :reaction (fn [editor res]
-                              (when (not= :hints (-> res :meta :result-type)) ;; dont recurse endlessly
-                                (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
-                                  (when @default-client
-                                    (object/raise editor :editor.clj.hints.update))))))
+                              (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
+                                (when @default-client
+                                  (object/raise editor :editor.clj.hints.update)))))
 
 (object/behavior* ::start-update-hints
                   :triggers #{:editor.clj.hints.update}
                   :reaction (fn [editor res]
-                              (let [info (:info @editor)
-                                    type (-> info :mime mime->type)
-                                    ns (:ns info)
-                                    code (case type
-                                           "clj" `(lighttable.nrepl.auto-complete/clj-hints '~ns)
-                                           "cljs" `(lighttable.nrepl.auto-complete/cljs-hints '~ns))
-                                    info (assoc info
-                                           :code (pr-str code)
-                                           :meta {:verbatim true
-                                                  :result-type :hints})
-                                    command :editor.eval.clj]
-                                (clients/send (eval/get-client! {:command command
+                              (let [info (:info @editor)]
+                                (clients/send (eval/get-client! {:command :editor.clj.hints
                                                                  :info info
                                                                  :origin editor
                                                                  :create try-connect})
-                                              command info :only editor))))
+                                              :editor.clj.hints info :only editor))))
 
 (object/behavior* ::finish-update-hints
-                  :triggers #{:editor.eval.clj.result.hints}
+                  :triggers #{:editor.clj.hints.result}
                   :reaction (fn [editor res]
-                              (object/merge! editor
-                                             {::hints (for [string (-> res :results (nth 0) :result)]
-                                                        {:completion string})})))
+                              (object/merge! (-> @editor :client :default)
+                                             {::hints res})))
 
-(object/behavior* ::use-hints
+(object/behavior* ::use-local-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
-                              (concat (::hints @editor) hints)))
+                              (if-let [default-client (-> @editor :client :default)]
+                                (if-let [clj-hints (-> default-client deref ::hints)]
+                                  (let [ns (-> @editor :info :ns)
+                                        type (-> @editor :info :mime mime->type)]
+                                    (concat (-> clj-hints (aget type) (aget (str ns))) hints))
+                                  hints)
+                                hints)))
+files
+(object/behavior* ::use-global-hints
+                  :triggers #{:hints+}
+                  :reaction (fn [editor hints]
+                              (if-let [default-client (-> @editor :client :default)]
+                                (if-let [clj-hints (-> default-client deref ::hints)]
+                                  (let [ns (-> @editor :info :ns)
+                                        type (-> @editor :info :mime mime->type)]
+                                    (concat (-> clj-hints (aget type) (aget "")) hints))
+                                  hints)
+                                hints)))
 
 ;;****************************************************
 ;; Jump to definition
@@ -747,7 +752,6 @@
   (if (and (str-contains? s " ") (platform/win?))
     (wrap-quotes s)
     s))
-
 
 (defn jar-command [path name client]
   ;(println (.which shell "java"))
