@@ -14,6 +14,7 @@
             [clojure.test :as test]
             [cljs.closure :as cljsc]
             [clojure.java.io :as io]
+            [cljs.tagged-literals :as tags]
             [clojure.set :as set :refer [difference union intersection]]
             [clojure.tools.nrepl.transport :as transport]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
@@ -107,6 +108,7 @@
                                 )
          bindings# (merge source-map-bindings#
                           {#'*ns* (eval/require|create-ns cur-ns#)
+                           #'reader/*data-readers* tags/*cljs-data-readers*
                            #'cljs/*cljs-ns* cur-ns#
                            #'*file* file#
                            #'cljs/*cljs-file* file#
@@ -412,6 +414,7 @@
           extra-bindings {#'*ns* (eval/require|create-ns cur-ns)
                           #'cljs/*cljs-ns* cur-ns
                           #'*file* path
+                          #'reader/*data-readers* tags/*cljs-data-readers*
                           #'cljs/*cljs-file* path
                           #'*source-path* path}
           bindings (merge @session extra-bindings)]
