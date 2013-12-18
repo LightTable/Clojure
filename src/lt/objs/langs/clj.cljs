@@ -629,17 +629,24 @@
 (object/behavior* ::use-local-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
-                              (let [clj-hints (-> @editor :client :default deref ::hints)
-                                    ns (-> @editor :info :ns)
-                                    type (-> @editor :info :mime mime->type)]
-                                (concat (-> clj-hints (aget type) (aget (str ns))) hints))))
-
+                              (if-let [default-client (-> @editor :client :default)]
+                                (if-let [clj-hints (-> default-client deref ::hints)]
+                                  (let [ns (-> @editor :info :ns)
+                                        type (-> @editor :info :mime mime->type)]
+                                    (concat (-> clj-hints (aget type) (aget (str ns))) hints))
+                                  hints)
+                                hints)))
+files
 (object/behavior* ::use-global-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
-                              (let [clj-hints (-> @editor :client :default deref ::hints)
-                                    type (-> @editor :info :mime mime->type)]
-                                (concat (-> clj-hints (aget type) (aget "")) hints))))
+                              (if-let [default-client (-> @editor :client :default)]
+                                (if-let [clj-hints (-> default-client deref ::hints)]
+                                  (let [ns (-> @editor :info :ns)
+                                        type (-> @editor :info :mime mime->type)]
+                                    (concat (-> clj-hints (aget type) (aget "")) hints))
+                                  hints)
+                                hints)))
 
 ;;****************************************************
 ;; Jump to definition
