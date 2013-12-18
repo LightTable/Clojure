@@ -1,5 +1,6 @@
 (ns lighttable.nrepl.auto-complete
-  (:require [complete.core]))
+  (:require [lighttable.nrepl.core :as core]
+            [complete.core]))
 
 (defn completion [string]
   {:completion string})
@@ -91,3 +92,7 @@
 (defn hints []
   {"clj" (clj-hints)
    "cljs" (cljs-hints)})
+
+(defmethod core/handle "editor.clj.hints" [{:keys [session] :as msg}]
+  (core/respond msg "editor.clj.hints.result" (hints) "json")
+  @session)

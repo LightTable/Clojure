@@ -606,35 +606,25 @@
                               :editor.eval.cljs.result}
                   :debounce 100
                   :reaction (fn [editor res]
-                              (when (not= :hints (-> res :meta :result-type)) ;; dont recurse endlessly
-                                (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
-                                  (when @default-client
-                                    (object/raise editor :editor.clj.hints.update))))))
+                              (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
+                                (when @default-client
+                                  (object/raise editor :editor.clj.hints.update)))))
 
 (object/behavior* ::start-update-hints
                   :triggers #{:editor.clj.hints.update}
                   :reaction (fn [editor res]
-                              (let [code `(lighttable.nrepl.auto-complete/hints)
-                                    info (assoc (:info @editor)
-                                           :code (pr-str code)
-                                           :meta {:verbatim true
-                                                  :result-type :hints})
-                                    command :editor.eval.clj]
-                                (clients/send (eval/get-client! {:command command
+                              (let [info (:info @editor)]
+                                (clients/send (eval/get-client! {:command :editor.clj.hints
                                                                  :info info
                                                                  :origin editor
                                                                  :create try-connect})
-                                              command info :only editor))))
-
-(defn- walk-vals [f m]
-  (into {}
-        (for [[k v] m] [k (f m)])))
+                                              :editor.clj.hints info :only editor))))
 
 (object/behavior* ::finish-update-hints
-                  :triggers #{:editor.eval.clj.result.hints}
+                  :triggers #{:editor.clj.hints.result}
                   :reaction (fn [editor res]
                               (object/merge! (-> @editor :client :default)
-                                             {::hints (-> res :results (nth 0) :result)})))
+                                             {::hints res})))
 
 (object/behavior* ::use-local-hints
                   :triggers #{:hints+}
@@ -642,14 +632,14 @@
                               (let [clj-hints (-> @editor :client :default deref ::hints)
                                     ns (-> @editor :info :ns)
                                     type (-> @editor :info :mime mime->type)]
-                                (concat (get-in clj-hints [type (str ns)]) hints))))
+                                (concat (-> clj-hints (aget type) (aget (str ns))) hints))))
 
 (object/behavior* ::use-global-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
                               (let [clj-hints (-> @editor :client :default deref ::hints)
                                     type (-> @editor :info :mime mime->type)]
-                                (concat (get-in clj-hints [type ""]) hints))))
+                                (concat (-> clj-hints (aget type) (aget "")) hints))))
 
 ;;****************************************************
 ;; Jump to definition
@@ -755,7 +745,6 @@
   (if (and (str-contains? s " ") (platform/win?))
     (wrap-quotes s)
     s))
-
 
 (defn jar-command [path name client]
   ;(println (.which shell "java"))
