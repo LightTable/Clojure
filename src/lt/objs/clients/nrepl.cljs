@@ -6,7 +6,8 @@
             [lt.util.js :refer [wait]]
             [lt.util.cljs :refer [js->clj str-contains?]]
             [lt.util.load :refer [node-module]]
-            [cljs.reader :as reader]))
+            [cljs.reader :as reader])
+  (:require-macros [lt.macros :refer [behavior]]))
 
 (def bencode (node-module "bencode"))
 (def Buffer (js/require "buffer"))
@@ -76,7 +77,7 @@
     socket))
 
 
-(object/behavior* ::nrepl-connect
+(behavior ::nrepl-connect
                   :triggers #{::connect}
                   :reaction (fn [this]
                               ;;clone a :session
@@ -84,7 +85,7 @@
                               ;;get client info
                               ))
 
-(object/behavior* ::init-remote-session
+(behavior ::init-remote-session
                   :triggers #{:new-session}
                   :reaction (fn [this session]
                               (object/merge! this {:session session})
@@ -94,13 +95,13 @@
                                                                     :remote true
                                                                     :client-id (clients/->id this)}})})))
 
-(object/behavior* ::client.settings.remote
+(behavior ::client.settings.remote
                   :triggers #{:client.settings}
                   :reaction (fn [this info]
                               (clients/handle-connection! info)
                               (object/merge! this {:dir nil})))
 
-(object/behavior* ::nrepl-send!
+(behavior ::nrepl-send!
                   :triggers #{:send!}
                   :reaction (fn [this msg]
                               (send this {:op (:command msg)
@@ -108,12 +109,12 @@
                                           :data (pr-str (:data msg))})
                               ))
 
-(object/behavior* ::client.settings
+(behavior ::client.settings
                   :triggers #{:client.settings}
                   :reaction (fn [this info]
                               (clients/handle-connection! info)))
 
-(object/behavior* ::init-session
+(behavior ::init-session
                   :triggers #{:new-session}
                   :reaction (fn [this session]
                               (object/merge! this {:session session})
@@ -122,7 +123,7 @@
                                           :data (pr-str {:settings {:client-id (clients/->id this)
                                                                     :dir (:dir @this)}})})))
 
-(object/behavior* ::nrepl-message
+(behavior ::nrepl-message
                   :triggers #{::message}
                   :reaction (fn [this msg]
                               (let [op (:op msg)
@@ -144,18 +145,18 @@
                                     (object/raise clients/clients :message [(:id msg) op info])
                                     )))))
 
-(object/behavior* ::try-connect!
+(behavior ::try-connect!
                   :triggers #{:try-connect!}
                   :reaction (fn [this info]
                               (when (:port @this)
                                 (object/raise this :connect!))))
 
-(object/behavior* ::connect!
+(behavior ::connect!
                   :triggers #{:connect!}
                   :reaction (fn [this]
                               (object/merge! this {:socket (connect-to (:host @this "localhost") (:port @this) this)})))
 
-(object/behavior* ::close
+(behavior ::close
                   :triggers #{:close!}
                   :reaction (fn [this]
                               (clients/rem! this)))

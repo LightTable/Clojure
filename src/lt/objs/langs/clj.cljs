@@ -24,7 +24,7 @@
             [lt.util.cljs :refer [->dottedkw str-contains?]]
             [clojure.string :as string]
             [lt.objs.command :as cmd])
-  (:require-macros [lt.macros :refer [defui]]))
+  (:require-macros [lt.macros :refer [behavior defui]]))
 
 (def shell (load/node-module "shelljs"))
 (def cur-path (.pwd shell))
@@ -60,7 +60,7 @@
 ;; highlighting
 ;;****************************************************
 
-(object/behavior* ::highlight-comment-forms
+(behavior ::highlight-comment-forms
                   :triggers #{:object.instant}
                   :desc "Clojure: Highlight comment forms as comments"
                   :type :user
@@ -98,7 +98,7 @@
       (or (clients/by-name local-name)
           (run-local-server (clients/client! :nrepl.client))))))
 
-(object/behavior* ::on-eval
+(behavior ::on-eval
                   :triggers #{:eval}
                   :reaction (fn [editor]
                               (object/raise clj-lang :eval! {:origin editor
@@ -109,7 +109,7 @@
                                                                                  clj-watch)))})
                              ))
 
-(object/behavior* ::on-eval.one
+(behavior ::on-eval.one
                   :triggers #{:eval.one}
                   :reaction (fn [editor]
                               (let [code (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
@@ -136,7 +136,7 @@
       (string/replace "__SELECTION*__" (pr-str (ed/selection editor)))
       (string/replace "__SELECTION__" (ed/selection editor))))
 
-(object/behavior* ::on-eval.custom
+(behavior ::on-eval.custom
                   :triggers #{:eval.custom}
                   :reaction (fn [editor exp opts]
                               (let [code (fill-placeholders editor exp)
@@ -153,12 +153,12 @@
                                 (object/raise clj-lang :eval! {:origin editor
                                                                :info info}))))
 
-(object/behavior* ::on-code
+(behavior ::on-code
                   :triggers #{:editor.eval.cljs.code}
                   :reaction (fn [this result]
                               (object/raise this :exec.cljs! result)))
 
-(object/behavior* ::exec.cljs!
+(behavior ::exec.cljs!
                   :triggers #{:exec.cljs!}
                   :reaction (fn [this res]
                               (let [client (-> @this :client :exec)
@@ -176,7 +176,7 @@
 (def mime->type {"text/x-clojure" "clj"
                  "text/x-clojurescript" "cljs"})
 
-(object/behavior* ::eval!
+(behavior ::eval!
                   :triggers #{:eval!}
                   :reaction (fn [this event]
                               (let [{:keys [info origin]} event
@@ -189,7 +189,7 @@
                                                                  :create try-connect})
                                               command info :only origin))))
 
-(object/behavior* ::build!
+(behavior ::build!
                   :triggers #{:build!}
                   :reaction (fn [this event]
                               (let [{:keys [info origin]} event
@@ -201,7 +201,7 @@
                                                                  :create try-connect})
                                               command info :only origin))))
 
-(object/behavior* ::build-cljs-plugin
+(behavior ::build-cljs-plugin
                   :triggers #{:build}
                   :desc "Plugin: build ClojureScript plugin"
                   :reaction (fn [this opts]
@@ -213,7 +213,7 @@
                                                                        :merge? true}
                                                                 :origin this}))))
 
-(object/behavior* ::plugin-compile-results
+(behavior ::plugin-compile-results
                   :triggers #{:cljs.compile.results}
                   :desc "Plugin: output compile results"
                   :reaction (fn [this res]
@@ -223,7 +223,7 @@
                                 (files/save final-path (:js res)))
                               ))
 
-(object/behavior* ::on-result-set-ns
+(behavior ::on-result-set-ns
                   :triggers #{:editor.eval.cljs.code
                               :editor.eval.clj.result}
                   :reaction (fn [obj res]
@@ -231,13 +231,13 @@
                                          (not= (-> @obj :info :ns) (:ns res)))
                                 (object/update! obj [:info] assoc :ns (:ns res)))))
 
-(object/behavior* ::no-op
+(behavior ::no-op
                   :triggers #{:editor.eval.cljs.no-op
                               :editor.eval.clj.no-op}
                   :reaction (fn [this]
                               (notifos/done-working)))
 
-(object/behavior* ::cljs-result
+(behavior ::cljs-result
                   :triggers #{:editor.eval.cljs.result}
                   :reaction (fn [obj res]
                               (notifos/done-working)
@@ -245,21 +245,21 @@
                                     ev (->dottedkw :editor.eval.cljs.result type)]
                                 (object/raise obj ev res))))
 
-(object/behavior* ::cljs-result.replace
+(behavior ::cljs-result.replace
                   :triggers #{:editor.eval.cljs.result.replace}
                   :reaction (fn [obj res]
                               (if-let [err (or (:stack res) (:ex res))]
                                 (notifos/set-msg! err {:class "error"})
                                 (ed/replace-selection obj  (unescape-unicode (or (:result res) ""))))))
 
-(object/behavior* ::cljs-result.statusbar
+(behavior ::cljs-result.statusbar
                   :triggers #{:editor.eval.cljs.result.statusbar}
                   :reaction (fn [obj res]
                               (if-let [err (or (:stack res) (:ex res))]
                                 (notifos/set-msg! err {:class "error"})
                                 (notifos/set-msg! (unescape-unicode (or (:result res) "")) {:class "result"}))))
 
-(object/behavior* ::cljs-result.inline
+(behavior ::cljs-result.inline
                   :triggers #{:editor.eval.cljs.result.inline}
                   :reaction (fn [obj res]
                               (let [meta (:meta res)
@@ -270,7 +270,7 @@
                                   (object/raise obj :editor.result (unescape-unicode (or (:result res) "")) loc)))))
 
 
-(object/behavior* ::clj-result
+(behavior ::clj-result
                   :triggers #{:editor.eval.clj.result}
                   :reaction (fn [obj res]
                               (notifos/done-working)
@@ -278,7 +278,7 @@
                                     ev (->dottedkw :editor.eval.clj.result type)]
                                 (object/raise obj ev res))))
 
-(object/behavior* ::clj-result.replace
+(behavior ::clj-result.replace
                   :triggers #{:editor.eval.clj.result.replace}
                   :reaction (fn [obj res]
                               (doseq [result (-> res :results)
@@ -289,7 +289,7 @@
                                   (notifos/set-msg! (:result res) {:class "error"})
                                   (ed/replace-selection obj (:result result))))))
 
-(object/behavior* ::clj-result.statusbar
+(behavior ::clj-result.statusbar
                   :triggers #{:editor.eval.clj.result.statusbar}
                   :reaction (fn [obj res]
                               (doseq [result (-> res :results)
@@ -300,7 +300,7 @@
                                   (notifos/set-msg! (:result res) {:class "error"})
                                   (notifos/set-msg! (:result result) {:class "result"})))))
 
-(object/behavior* ::clj-result.inline
+(behavior ::clj-result.inline
                   :triggers #{:editor.eval.clj.result.inline}
                   :reaction (fn [obj res]
                               (doseq [result (-> res :results)
@@ -312,7 +312,7 @@
                                   (do
                                     (object/raise obj :editor.result (:result result) loc))))))
 
-(object/behavior* ::clj-exception
+(behavior ::clj-exception
                   :triggers #{:editor.eval.clj.exception}
                   :reaction (fn [obj res passed?]
                               (when-not passed?
@@ -324,7 +324,7 @@
                                 (object/raise obj :editor.exception (:stack res) loc))
                               ))
 
-(object/behavior* ::cljs-exception
+(behavior ::cljs-exception
                   :triggers #{:editor.eval.cljs.exception}
                   :reaction (fn [obj res passed?]
                               (when-not passed?
@@ -338,14 +338,14 @@
                                 (object/raise obj :editor.exception stack loc))
                               ))
 
-(object/behavior* ::eval-location
+(behavior ::eval-location
                   :triggers #{:editor.eval.clj.location
                               :editor.eval.cljs.location}
                   :reaction (fn [obj loc]
                               ;(println "LOCATION: " loc)
                               ))
 
-(object/behavior* ::eval-print
+(behavior ::eval-print
                   :triggers #{:editor.eval.clj.print}
                   :reaction (fn [this str]
                               (when (not= "\n" (:out str))
@@ -356,19 +356,19 @@
                                                   :content (:out str)}
                                                  ))))
 
-(object/behavior* ::eval-print-err
+(behavior ::eval-print-err
                   :triggers #{:editor.eval.clj.print.err}
                   :reaction (fn [this str]
                               (when (not= "\n" (:out str))
                                 (console/error (:out str)))))
 
-(object/behavior* ::handle-cancellation
+(behavior ::handle-cancellation
                   :triggers #{:editor.eval.clj.cancel}
                   :reaction (fn [this]
                               (notifos/done-working)
                               (notifos/set-msg! "Canceled clj eval." {:class "error"})))
 
-(object/behavior* ::print-length
+(behavior ::print-length
                   :triggers #{:clojure.print-length+}
                   :desc "Clojure: Set the print length for eval (doesn't affect CLJS)"
                   :params [{:label "length"
@@ -383,7 +383,7 @@
 
 (def clj-lang (object/create :langs.clj))
 
-(object/behavior* ::java-exe
+(behavior ::java-exe
                   :triggers #{:object.instant}
                   :desc "Clojure: set the path to the Java executable for clients"
                   :type :user
@@ -392,7 +392,7 @@
                   :reaction (fn [this path]
                               (object/merge! clj-lang {:java-exe path})))
 
-(object/behavior* ::require-jar
+(behavior ::require-jar
                   :triggers #{:connect}
                   :reaction (fn [this path]
                               (let [code (pr-str `(pomegranate/add-classpath ~path))]
@@ -406,7 +406,7 @@
 ;; Connectors
 ;;****************************************************
 
-(object/behavior* ::connect
+(behavior ::connect
                   :triggers #{:connect}
                   :reaction (fn [this path]
                               (try-connect {:info {:path path}})))
@@ -460,13 +460,13 @@
 ;; watches
 ;;****************************************************
 
-(object/behavior* ::cljs-watch-src
+(behavior ::cljs-watch-src
                   :triggers #{:watch.src+}
                   :reaction (fn [editor cur meta src]
                               (let [meta (assoc meta :ev :editor.eval.cljs.watch)]
                                 (str "(js/lttools.watch " src " (clj->js " (pr-str meta) "))"))))
 
-(object/behavior* ::clj-watch-src
+(behavior ::clj-watch-src
                   :triggers #{:watch.src+}
                   :reaction (fn [editor cur meta src]
                               (str "(lighttable.nrepl.eval/watch " src " " (pr-str meta) ")")))
@@ -479,13 +479,13 @@
       (string/replace "__ID__" (pr-str (:id meta)))
       (string/replace #"__\|(.*)\|__" watch)))
 
-(object/behavior* ::cljs-watch-custom-src
+(behavior ::cljs-watch-custom-src
                   :triggers #{:watch.custom.src+}
                   :reaction (fn [editor cur meta opts src]
                               (let [watch (str "(js/lttools.raise " (:obj meta) " :editor.eval.cljs.watch {:meta " (pr-str (merge (dissoc opts :exp) meta)) " :result $1})")]
                                 (fill-watch-placeholders (:exp opts) src meta watch))))
 
-(object/behavior* ::clj-watch-custom-src
+(behavior ::clj-watch-custom-src
                   :triggers #{:watch.custom.src+}
                   :reaction (fn [editor cur meta opts src]
                               (let [wrapped (if (:verbatim opts)
@@ -494,7 +494,7 @@
                                     watch (str "(lighttable.nrepl.core/safe-respond-to " (:obj meta) " :editor.eval.clj.watch {:meta " (pr-str (merge (dissoc opts :exp) meta)) " :result " wrapped "})")]
                                 (fill-watch-placeholders (:exp opts) src meta watch))))
 
-(object/behavior* ::cljs-watch-result
+(behavior ::cljs-watch-result
                   :triggers #{:editor.eval.cljs.watch}
                   :reaction (fn [editor res]
                               (when-let [watch (get (:watches @editor) (-> res :meta :id))]
@@ -507,7 +507,7 @@
                                       str-result (util/escape str-result)]
                                   (object/raise (:inline-result watch) :update! str-result)))))
 
-(object/behavior* ::clj-watch-result
+(behavior ::clj-watch-result
                   :triggers #{:editor.eval.clj.watch}
                   :reaction (fn [editor res]
                               (when-let [watch (get (:watches @editor) (-> res :meta :id))]
@@ -520,7 +520,7 @@
 ;; doc
 ;;****************************************************
 
-(object/behavior* ::clj-doc
+(behavior ::clj-doc
                   :triggers #{:editor.doc}
                   :reaction (fn [editor]
                               (let [token (find-symbol-at-cursor editor)
@@ -539,7 +539,7 @@
                                             command info :only editor)))
                               ))
 
-(object/behavior* ::print-clj-doc
+(behavior ::print-clj-doc
                   :triggers #{:editor.clj.doc}
                   :reaction (fn [editor result]
                               (when (= :doc (:result-type result))
@@ -559,7 +559,7 @@
         (when (symbol-token? (:string token-left))
           (assoc token-left :loc loc)))))
 
-(object/behavior* ::cljs-doc
+(behavior ::cljs-doc
                   :triggers #{:editor.doc}
                   :reaction (fn [editor]
                               (let [token (find-symbol-at-cursor editor)
@@ -577,7 +577,7 @@
                                                                :create try-connect})
                                             command info :only editor)))))
 
-(object/behavior* ::print-cljs-doc
+(behavior ::print-cljs-doc
                   :triggers #{:editor.cljs.doc}
                   :reaction (fn [editor result]
                               (when (= :doc (:result-type result))
@@ -585,13 +585,13 @@
                                   (notifos/set-msg! "No docs found." {:class "error"})
                                   (object/raise editor :editor.doc.show! result)))))
 
-(object/behavior* ::clj-doc-search
+(behavior ::clj-doc-search
                   :triggers #{:types+}
                   :reaction (fn [this cur]
                               (conj cur {:label "clj" :trigger :docs.clj.search :file-types #{"Clojure"}})
                               ))
 
-(object/behavior* ::cljs-doc-search
+(behavior ::cljs-doc-search
                   :triggers #{:types+}
                   :reaction (fn [this cur]
                               (conj cur {:label "cljs" :trigger :docs.cljs.search :file-types #{"ClojureScript"}})
@@ -601,7 +601,7 @@
 ;; autocomplete
 ;;****************************************************
 
-(object/behavior* ::trigger-update-hints
+(behavior ::trigger-update-hints
                   :triggers #{:editor.eval.clj.result
                               :editor.eval.cljs.result}
                   :debounce 100
@@ -610,7 +610,7 @@
                                 (when @default-client
                                   (object/raise editor :editor.clj.hints.update)))))
 
-(object/behavior* ::start-update-hints
+(behavior ::start-update-hints
                   :triggers #{:editor.clj.hints.update}
                   :reaction (fn [editor res]
                               (let [info (:info @editor)]
@@ -620,13 +620,13 @@
                                                                  :create try-connect})
                                               :editor.clj.hints info :only editor))))
 
-(object/behavior* ::finish-update-hints
+(behavior ::finish-update-hints
                   :triggers #{:editor.clj.hints.result}
                   :reaction (fn [editor res]
                               (object/merge! (-> @editor :client :default)
                                              {::hints res})))
 
-(object/behavior* ::use-local-hints
+(behavior ::use-local-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
                               (if-let [default-client (-> @editor :client :default)]
@@ -637,7 +637,7 @@
                                   hints)
                                 hints)))
 files
-(object/behavior* ::use-global-hints
+(behavior ::use-global-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
                               (if-let [default-client (-> @editor :client :default)]
@@ -652,14 +652,14 @@ files
 ;; Jump to definition
 ;;****************************************************
 
-(object/behavior* ::jump-to-definition-at-cursor
+(behavior ::jump-to-definition-at-cursor
                   :triggers #{:editor.jump-to-definition-at-cursor!}
                   :reaction (fn [editor]
                               (let [token (find-symbol-at-cursor editor)]
                                 (when token
                                   (object/raise editor :editor.jump-to-definition! (:string token))))))
 
-(object/behavior* ::start-jump-to-definition
+(behavior ::start-jump-to-definition
                   :triggers #{:editor.jump-to-definition!}
                   :reaction (fn [editor string]
                               (let [info (:info @editor)
@@ -673,7 +673,7 @@ files
                                                                  :create try-connect})
                                               command info :only editor))))
 
-(object/behavior* ::finish-jump-to-definition
+(behavior ::finish-jump-to-definition
                   :triggers #{:editor.clj.doc
                               :editor.cljs.doc}
                   :reaction (fn [editor {:keys [file line] :as res}]
@@ -686,7 +686,7 @@ files
 ;; Proc
 ;;****************************************************
 
-(object/behavior* ::on-out
+(behavior ::on-out
                   :triggers #{:proc.out}
                   :reaction (fn [this data]
                               (let [out (.toString data)]
@@ -705,7 +705,7 @@ files
                                     (notifos/set-msg! "Retrieving deps.. " {}))))
                               ))
 
-(object/behavior* ::on-error
+(behavior ::on-error
                   :triggers #{:proc.error}
                   :reaction (fn [this data]
                               (let [out (.toString data)]
@@ -716,7 +716,7 @@ files
                               ))
 
 
-(object/behavior* ::on-exit
+(behavior ::on-exit
                   :triggers #{:proc.exit}
                   :reaction (fn [this data]
                               ;(object/update! this [:buffer] str data)

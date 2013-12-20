@@ -15,11 +15,11 @@
             [crate.binding :refer [bound subatom]]
             [crate.core :as crate]
             [cljs.reader :as reader])
-  (:require-macros [lt.macros :refer [defui]]))
+  (:require-macros [lt.macros :refer [behavior defui]]))
 
 ;;TODO: version out of sync
 
-(object/behavior* ::on-eval-sonar
+(behavior ::on-eval-sonar
                   :triggers #{:eval}
                   :reaction (fn [obj auto? pos?]
                               (let [ed (:ed @obj)
@@ -39,12 +39,12 @@
                                               :only
                                               (:frame @obj)))))
 
-(object/behavior* ::on-eval-one
+(behavior ::on-eval-one
                   :triggers #{:eval.one}
                   :reaction (fn [this]
                               (object/raise this :eval false :pos)))
 
-(object/behavior* ::eval-on-change
+(behavior ::eval-on-change
                   :triggers #{:change}
                   :debounce 300
                   :reaction (fn [this]
@@ -52,7 +52,7 @@
                                 (when (:live parent)
                                   (object/raise this :eval true)))))
 
-(object/behavior* ::sonar-result
+(behavior ::sonar-result
                   :triggers #{:editor.eval.clj.sonar.result}
                   :reaction (fn [this res]
                               (notifos/done-working)
@@ -61,48 +61,48 @@
                               (update-res this res)
                               ))
 
-(object/behavior* ::no-op
+(behavior ::no-op
                   :triggers #{:editor.eval.clj.sonar.noop}
                   :reaction (fn [this]
                               (notifos/done-working)))
 
-(object/behavior* ::clj-exception
+(behavior ::clj-exception
                   :triggers #{:editor.eval.clj.exception}
                   :reaction (fn [this ex]
                               (notifos/done-working)
                               (object/merge! this {:error (:msg ex)})
                               ))
 
-(object/behavior* ::destroy-on-close
+(behavior ::destroy-on-close
                   :triggers #{:close}
                   :reaction (fn [this]
                               (object/raise (:main @this) :close)))
 
 
-(object/behavior* ::cleanup-on-destroy
+(behavior ::cleanup-on-destroy
                   :triggers #{:destroy}
                   :reaction (fn [this]
                               (doseq [[_ w] (-> @this :main deref :widgets)]
                                 (object/raise w :clear!))))
 
-(object/behavior* ::dirty-parent
+(behavior ::dirty-parent
                   :triggers #{:dirty :clean}
                   :reaction (fn [this]
                               (when (:frame @this)
                                 (object/merge! (:frame @this) {:dirty (:dirty @this)}))))
 
-(object/behavior* ::close-parent
+(behavior ::close-parent
                   :triggers #{:destroy}
                   :reaction (fn [this]
                               (object/destroy! (:frame @this))))
 
-(object/behavior* ::set-parent-title
+(behavior ::set-parent-title
                   :triggers #{:save-as :path-changed}
                   :reaction (fn [this]
                               (object/remove-tags this [:editor.clj])
                               (object/merge! (:frame @this) {:name (-> @this :info :name)})))
 
-(object/behavior* ::on-show-refresh-eds
+(behavior ::on-show-refresh-eds
                   :triggers #{:show}
                   :reaction (fn [this]
                               (object/raise (:main @this) :show)
@@ -110,17 +110,17 @@
                               (editor/focus (:main @this))
                               ))
 
-(object/behavior* ::reroute-watches
+(behavior ::reroute-watches
                   :triggers #{:editor.eval.clj.watch}
                   :reaction (fn [this r]
                               (object/raise (:main @this) :editor.eval.clj.watch r)))
 
-(object/behavior* ::on-focus-focus-ed
+(behavior ::on-focus-focus-ed
                   :triggers #{:focus!}
                   :reaction (fn [this]
                               (object/raise (:main @this) :focus!)))
 
-(object/behavior* ::live-toggle
+(behavior ::live-toggle
                   :triggers #{:live.toggle!}
                   :reaction (fn [this]
                               (cmd/exec! :clear-inline-results)
@@ -164,7 +164,7 @@
                                                                 (inline main val {:type type
                                                                                   :line (-> r :cur first dec)})))})))))
 
-(object/behavior* ::start-content
+(behavior ::start-content
                   :triggers #{:start-content+}
                   :type :user
                   :desc "Instarepl: Set start content"
