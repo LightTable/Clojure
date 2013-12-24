@@ -66,7 +66,7 @@
                  (.Buffer.concat Buffer (array (:buffer @client) data))
                  data)]
     (if @failed-recently?
-      (object/merge! client {:buffer msg})
+      (object/merge! client {:buffer buffer})
       (let [decoded (decode client buffer failed-recently?)]
         (set! queue (.concat queue decoded))
         (when-not running?
