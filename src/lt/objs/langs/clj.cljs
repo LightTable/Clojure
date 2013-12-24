@@ -636,7 +636,7 @@
                                     (concat (-> clj-hints (aget type) (aget (str ns))) hints))
                                   hints)
                                 hints)))
-files
+
 (behavior ::use-global-hints
                   :triggers #{:hints+}
                   :reaction (fn [editor hints]
