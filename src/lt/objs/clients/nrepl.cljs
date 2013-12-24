@@ -20,8 +20,9 @@
   (let [b (.-Buffer Buffer)]
     (new b size)))
 
-(defn decode [client msg failed-recently?]
-  (let [msgs (array)]
+(defn decode [client failed-recently?]
+  (let [msg (:buffer @client)
+        msgs (array)]
     (loop [msg msg]
       (if (<= (.-length msg) 0)
         (object/merge! client {:buffer nil})
@@ -37,11 +38,18 @@
             (reset! failed-recently? true)
             (object/merge! client {:buffer msg})
             (js/setTimeout #(do (reset! failed-recently? false)
-                              (when-let [msg (:buffer @client)]
-                                (decode client msg failed-recently?)))
+                              (decode client failed-recently?))
                            50)
             ))))
-    msgs))
+    (set! queue (.concat queue msgs))
+    (when-not running?
+      (set! running? true)
+      (non-blocking-loop client))))
+
+(defn maybe-decode [client failed-recently? data]
+  (object/update! client [:buffer] #(if % (.Buffer.concat Buffer (array % data)) data))
+  (when-not @failed-recently?
+    (decode client failed-recently?)))
 
 (def queue (array))
 (def queue-index 0)
@@ -61,26 +69,12 @@
                               (set! queue-index (inc queue-index))
                               (non-blocking-loop client)))))
 
-(defn try-decode [client data failed-recently?]
-  (let [buffer (if (:buffer @client)
-                 (.Buffer.concat Buffer (array (:buffer @client) data))
-                 data)]
-    (if @failed-recently?
-      (object/merge! client {:buffer buffer})
-      (let [decoded (decode client buffer failed-recently?)]
-        (set! queue (.concat queue decoded))
-        (when-not running?
-          (set! running? true)
-          (non-blocking-loop client))))))
-
-
 (defn connect-to [host port client]
   (let [socket (.connect net port host)
         failed-recently? (atom false)]
     (.on socket "connect" #(when @client (object/raise client ::connect)))
     (.on socket "error" #(when @client (object/raise client ::connect-fail)))
-    (.on socket "data" #(when @client
-                          (try-decode client % failed-recently?)))
+    (.on socket "data" #(when @client (maybe-decode client failed-recently? %)))
     (.on socket "close" #(when @client
                            (object/raise client :close!)))
     socket))
