@@ -209,7 +209,7 @@
                                 (object/raise clj-lang :build! {:info {:files to-compile
                                                                        :mime (-> @this :info :mime)
                                                                        :path (files/join (:lt.objs.plugins/plugin-path @this) "plugin.edn")
-                                                                       :ignore ['cljs.core 'cljs.reader 'clojure.string 'clojure.set 'goog.string]
+                                                                       :ignore ['goog 'goog.array 'goog 'fetch.core 'fetch.util 'cljs.core 'cljs.reader 'clojure.string 'clojure.set 'goog.string]
                                                                        :merge? true}
                                                                 :origin this}))))
 

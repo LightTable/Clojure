@@ -195,7 +195,7 @@
                   (or (js-dep {:ns cur-ns}) (cljs-dep {:ns cur-ns})))
             [seen all] (if (or (not cur-ns) (not dep))
                          [(conj seen cur-ns) all]
-                         [(apply conj seen (keys dep)) (merge all dep)])
+                         [(apply conj seen cur-ns (keys dep)) (merge all dep)])
             left (set/difference (into left (dep->deps dep)) seen)]
         (recur all left seen)
         ))))
