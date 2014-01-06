@@ -30,7 +30,6 @@
                  (:lt.object/add-tag :nrepl.client.common)]
 
   :nrepl.client.remote [:lt.objs.clients.nrepl/client.settings.remotesession
-                        (:lt.object/add-tag :nrepl.hints)
                         (:lt.object/add-tag :nrepl.client.common)]
 
  :editor.clj.jump-to-definition [:lt.objs.langs.clj/jump-to-definition-at-cursor
