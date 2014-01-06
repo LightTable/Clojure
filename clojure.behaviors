@@ -73,6 +73,8 @@
 
   :editor.cljs [(:lt.object/add-tag :editor.clj.common)
                 (:lt.object/add-tag :editor.clj.eval)
+                :lt.objs.langs.clj/eval-print
+                :lt.objs.langs.clj/eval-print-err
                 :lt.objs.langs.clj/exec.cljs!
                 :lt.objs.langs.clj/on-code
                 :lt.objs.langs.clj/cljs-result

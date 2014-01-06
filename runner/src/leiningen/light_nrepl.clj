@@ -6,6 +6,22 @@
             [fs.core :as fs])
   (:use [leiningen.core.eval :only [eval-in-project]]))
 
+(defn parse-version [ver]
+  (let [[major minor patch] (string/split ver #"\.")
+        [patch extra] (string/split patch #"-")]
+    {:major (Integer. major)
+     :minor (Integer. minor)
+     :patch (Integer. patch)}))
+
+(defn valid-clojure? [ver]
+  (let [{:keys [major minor patch]} (parse-version ver)]
+    ;;do this by negation. It's an invalid version if any of the
+    ;;following are true
+    (not
+     (or (< major 1)
+         (and (= major 1) (< minor 5))
+         (and (= major 1) (= minor 5) (< patch 1))))))
+
 (defn proj->name [proj]
   (str (:name proj) " " (:version proj)))
 
@@ -29,7 +45,7 @@
 (defn light
   "Start a Light Table client for this project"
   [project & [name]]
-  (when (< 0 (compare "1.5.1" (find-clojure-version project)))
+  (when-not (valid-clojure? (find-clojure-version project))
     (binding [*out* *err*]
       (println "Light Table requires Clojure Version 1.5.1 or higher")
       (System/exit 0)))

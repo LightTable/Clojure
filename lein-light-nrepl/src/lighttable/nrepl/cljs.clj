@@ -95,6 +95,13 @@
     (@@c :gen-line)
     @(resolve 'comp/*cljs-gen-line*)))
 
+(defn offset-source-map [map offset]
+  (into map
+        (for [[line col-map] map]
+          [line (into col-map
+                      (for [[col items] col-map]
+                        [col (mapv #(update-in % [:gline] + offset) items)]))])))
+
 (defmacro with-cljs-env [cur & body]
   `(let [file# (:file ~cur)
          cur-ns# (or (-> ~cur :ns :name) 'cljs.user)
@@ -152,13 +159,16 @@
   (when analysis
     (with-cljs-env cur
       (let [js (reduce #(str % %2 "\n") "" (map comp/emit-str analysis))
-            sm (sm/encode {file (source-map-ref)}
-                         {:lines (inc (gen-line))
+            js (str "if(!lt.util.load.provided_QMARK_('" (:name cur) "')) {\n" js "}\n")
+            sm-ref (offset-source-map (source-map-ref) 1)
+            sm (sm/encode {file sm-ref}
+                         {:lines (+ 3 (gen-line))
                           :file  (str file ".map")})]
         (assoc cur
           :js js
-          :lines (inc (gen-line))
-          :source-map-internal (source-map-ref)
+          ;; we add an extra line at the end, and wrap it in an if provided check
+          :lines (+ 3 (gen-line))
+          :source-map-internal sm-ref
           :source-map sm)))))
 
 (defn cljs-dep [{:keys [ns file]}]
@@ -195,7 +205,7 @@
                   (or (js-dep {:ns cur-ns}) (cljs-dep {:ns cur-ns})))
             [seen all] (if (or (not cur-ns) (not dep))
                          [(conj seen cur-ns) all]
-                         [(apply conj seen (keys dep)) (merge all dep)])
+                         [(apply conj seen cur-ns (keys dep)) (merge all dep)])
             left (set/difference (into left (dep->deps dep)) seen)]
         (recur all left seen)
         ))))
@@ -232,12 +242,6 @@
           ""
           deps))
 
-(defn offset-source-map [map offset]
-  (into map
-        (for [[line col-map] map]
-          [line (into col-map
-                      (for [[col items] col-map]
-                        [col (mapv #(update-in % [:gline] + offset) items)]))])))
 
 (defn concat-source-maps [ordered file]
   (let [concated (reduce (fn [final cur]
