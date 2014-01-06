@@ -21,22 +21,23 @@
     (new b size)))
 
 (defn decode [client failed-recently?]
-  (let [msg (:buffer @client)
+  (let [buffer (:buffer @client)
+        msg @buffer
         msgs (array)]
     (loop [msg msg]
       (if (<= (.-length msg) 0)
-        (object/merge! client {:buffer nil})
+        (reset! buffer nil)
         (try
           (let [neue (js->clj (.decode bencode msg "utf-8") :keywordize-keys true)
                 pos (.-decode.position bencode)]
             (.push msgs neue)
             (if (and pos (>= pos (.-length msg)))
-              (object/merge! client {:buffer nil})
+              (reset! buffer nil)
               (recur (.slice msg pos))))
           (catch js/global.Error e
             ;; stop trying for 50ms to avoid locking up the editor
             (reset! failed-recently? true)
-            (object/merge! client {:buffer msg})
+            (reset! buffer msg)
             (js/setTimeout #(do (reset! failed-recently? false)
                               (decode client failed-recently?))
                            50)
@@ -47,7 +48,7 @@
       (non-blocking-loop client))))
 
 (defn maybe-decode [client failed-recently? data]
-  (object/update! client [:buffer] #(if % (.Buffer.concat Buffer (array % data)) data))
+  (swap! (:buffer @client) #(if % (.Buffer.concat Buffer (array % data)) data))
   (when-not @failed-recently?
     (decode client failed-recently?)))
 
@@ -79,11 +80,11 @@
                            (object/raise client :close!)))
     socket))
 
-
 (behavior ::nrepl-connect
                   :triggers #{::connect}
                   :reaction (fn [this]
                               ;;clone a :session
+                              (object/merge! this {:buffer (atom nil)})
                               (send* this {:op "clone"})
                               ;;get client info
                               ))
