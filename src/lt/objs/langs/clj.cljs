@@ -23,7 +23,8 @@
             [lt.util.load :as load]
             [lt.util.cljs :refer [->dottedkw str-contains?]]
             [clojure.string :as string]
-            [lt.objs.command :as cmd])
+            [lt.objs.command :as cmd]
+            [lt.objs.plugins :as plugins])
   (:require-macros [lt.macros :refer [behavior defui]]))
 
 (def shell (load/node-module "shelljs"))
@@ -232,7 +233,7 @@
                   :triggers #{:cljs.compile.results}
                   :desc "Plugin: output compile results"
                   :reaction (fn [this res]
-                              (let [plugin-name (files/basename (:lt.objs.plugins/plugin-path @this))
+                              (let [plugin-name (-> (:lt.objs.plugins/plugin-path @this) plugins/plugin-info :name string/lower_case)
                                     final-path (files/join (:lt.objs.plugins/plugin-path @this) (str plugin-name "_compiled.js"))]
                                 (notifos/done-working (str "Compiled plugin to " final-path))
                                 (files/save final-path (:js res)))
