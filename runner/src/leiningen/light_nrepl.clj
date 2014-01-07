@@ -7,20 +7,23 @@
   (:use [leiningen.core.eval :only [eval-in-project]]))
 
 (defn parse-version [ver]
-  (let [[major minor patch] (string/split ver #"\.")
-        [patch extra] (string/split patch #"-")]
-    {:major (Integer. major)
-     :minor (Integer. minor)
-     :patch (Integer. patch)}))
+  (when ver
+    (let [[major minor patch] (string/split ver #"\.")
+          [patch extra] (string/split patch #"-")]
+      {:major (Integer. major)
+       :minor (Integer. minor)
+       :patch (Integer. patch)})))
 
 (defn valid-clojure? [ver]
-  (let [{:keys [major minor patch]} (parse-version ver)]
-    ;;do this by negation. It's an invalid version if any of the
-    ;;following are true
-    (not
-     (or (< major 1)
-         (and (= major 1) (< minor 5))
-         (and (= major 1) (= minor 5) (< patch 1))))))
+  (if-not ver
+    true
+    (let [{:keys [major minor patch]} (parse-version ver)]
+      ;;do this by negation. It's an invalid version if any of the
+      ;;following are true
+      (not
+       (or (< major 1)
+           (and (= major 1) (< minor 5))
+           (and (= major 1) (= minor 5) (< patch 1)))))))
 
 (defn proj->name [proj]
   (str (:name proj) " " (:version proj)))
