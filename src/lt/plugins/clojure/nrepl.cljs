@@ -1,4 +1,4 @@
-(ns lt.objs.clients.nrepl
+(ns lt.plugins.clojure.nrepl
   (:require [lt.object :as object]
             [lt.objs.clients :as clients]
             [lt.objs.files :as files]

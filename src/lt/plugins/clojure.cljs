@@ -1,4 +1,4 @@
-(ns lt.objs.langs.clj
+(ns lt.plugins.clojure
   (:require [lt.object :as object]
             [lt.objs.clients :as clients]
             [lt.objs.files :as files]
@@ -128,9 +128,6 @@
                         (object/raise clj-lang :eval! {:origin editor
                                                        :info info}))))
 
-
-;;(macro-expand __SELECTION__)
-;; 2
 
 (defn fill-placeholders [editor exp]
   (-> exp
@@ -432,6 +429,7 @@
                     :desc "Select a project.clj to connect to for either Clojure or ClojureScript."
                     :connect (fn []
                                (dialogs/file clj-lang :connect))})
+
 (defui server-input []
   [:input {:type "text" :placeholder "host:port" :value "localhost:"}]
   :focus (fn []

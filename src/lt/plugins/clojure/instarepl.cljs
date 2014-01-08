@@ -1,4 +1,4 @@
-(ns lt.objs.instarepl
+(ns lt.plugins.clojure.instarepl
   (:require [lt.object :as object]
             [lt.objs.metrics :as metrics]
             [lt.objs.eval :as eval]
@@ -6,7 +6,7 @@
             [lt.objs.editor :as editor]
             [lt.objs.editor.pool :as pool]
             [lt.objs.console :as console]
-            [lt.objs.langs.clj :as clj]
+            [lt.plugins.clojure :as clj]
             [lt.objs.notifos :as notifos]
             [lt.plugins.watches :as watches]
             [lt.objs.tabs :as tabs]
