@@ -32,7 +32,8 @@
                  :lt.plugins.clojure.nrepl/init-session
                  (:lt.object/add-tag :nrepl.client.common)]
 
-  :nrepl.client.remote [:lt.plugins.clojure.nrepl/client.settings.remotesession
+  :nrepl.client.remote [:lt.plugins.clojure.nrepl/client.settings.remote
+                        :lt.plugins.clojure.nrepl/init-remote-session
                         (:lt.object/add-tag :nrepl.client.common)]
 
  :editor.clj.jump-to-definition [:lt.plugins.clojure/jump-to-definition-at-cursor

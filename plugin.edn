@@ -1,5 +1,5 @@
 {:name "Clojure"
- :version "0.0.1"
+ :version "0.0.2"
  :author "Kodowa"
  :source "https://github.com/LightTable/Clojure"
  :desc "Clojure integration for Light Table"
