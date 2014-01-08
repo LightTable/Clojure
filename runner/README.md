@@ -1,15 +1,3 @@
-# client
+# Runner
 
-I'm an app. Or maybe I'm a library? I haven't decided yet. 
-
-The choice is up to you!
-
-## Usage
-
-FIXME
-
-## License
-
-Copyright © 2012 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+This project is just used to provide an uberjar that can be run to start up the clojure process. It injects lein-light-nrepl into that process and then just starts a repl.

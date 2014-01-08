@@ -1,13 +1,3 @@
 # lein-light-nrepl
 
-A Clojure library designed to ... well, that part is up to you.
-
-## Usage
-
-FIXME
-
-## License
-
-Copyright © 2013 FIXME
-
-Distributed under the Eclipse Public License, the same as Clojure.
+lein-light-nrepl is the nrepl-based client for Light Table's clojure and clojurescript evaluation. Basically everything that requires the JVM will be found in this project.
