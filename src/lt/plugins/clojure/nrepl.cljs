@@ -81,89 +81,89 @@
     socket))
 
 (behavior ::nrepl-connect
-                  :triggers #{::connect}
-                  :reaction (fn [this]
-                              ;;clone a :session
-                              (object/merge! this {:buffer (atom nil)})
-                              (send* this {:op "clone"})
-                              ;;get client info
-                              ))
+          :triggers #{::connect}
+          :reaction (fn [this]
+                      ;;clone a :session
+                      (object/merge! this {:buffer (atom nil)})
+                      (send* this {:op "clone"})
+                      ;;get client info
+                      ))
 
 (behavior ::init-remote-session
-                  :triggers #{:new-session}
-                  :reaction (fn [this session]
-                              (object/merge! this {:session session})
-                              (send this {:op "client.init"
-                                          :id (clients/->id this)
-                                          :data (pr-str {:settings {:name (:name @this)
-                                                                    :remote true
-                                                                    :client-id (clients/->id this)}})})))
+          :triggers #{:new-session}
+          :reaction (fn [this session]
+                      (object/merge! this {:session session})
+                      (send this {:op "client.init"
+                                  :id (clients/->id this)
+                                  :data (pr-str {:settings {:name (:name @this)
+                                                            :remote true
+                                                            :client-id (clients/->id this)}})})))
 
 (behavior ::client.settings.remote
-                  :triggers #{:client.settings}
-                  :reaction (fn [this info]
-                              (clients/handle-connection! info)
-                              (object/merge! this {:dir nil})))
+          :triggers #{:client.settings}
+          :reaction (fn [this info]
+                      (clients/handle-connection! info)
+                      (object/merge! this {:dir nil})))
 
 (behavior ::nrepl-send!
-                  :triggers #{:send!}
-                  :reaction (fn [this msg]
-                              (send this {:op (:command msg)
-                                          :id (or (:cb msg) 0)
-                                          :data (pr-str (:data msg))})
-                              ))
+          :triggers #{:send!}
+          :reaction (fn [this msg]
+                      (send this {:op (:command msg)
+                                  :id (or (:cb msg) 0)
+                                  :data (pr-str (:data msg))})
+                      ))
 
 (behavior ::client.settings
-                  :triggers #{:client.settings}
-                  :reaction (fn [this info]
-                              (clients/handle-connection! info)))
+          :triggers #{:client.settings}
+          :reaction (fn [this info]
+                      (clients/handle-connection! info)))
 
 (behavior ::init-session
-                  :triggers #{:new-session}
-                  :reaction (fn [this session]
-                              (object/merge! this {:session session})
-                              (send this {:op "client.init"
-                                          :id (clients/->id this)
-                                          :data (pr-str {:settings {:client-id (clients/->id this)
-                                                                    :dir (:dir @this)}})})))
+          :triggers #{:new-session}
+          :reaction (fn [this session]
+                      (object/merge! this {:session session})
+                      (send this {:op "client.init"
+                                  :id (clients/->id this)
+                                  :data (pr-str {:settings {:client-id (clients/->id this)
+                                                            :dir (:dir @this)}})})))
 
 (behavior ::nrepl-message
-                  :triggers #{::message}
-                  :reaction (fn [this msg]
-                              (let [op (:op msg)
-                                    encoding (:encoding msg)
-                                    info (when (:data msg)
-                                           (case encoding
-                                             "edn" (reader/read-string (:data msg))
-                                             "json" (js/JSON.parse (:data msg))))]
+          :triggers #{::message}
+          :reaction (fn [this msg]
+                      (let [op (:op msg)
+                            encoding (:encoding msg)
+                            info (when (:data msg)
+                                   (case encoding
+                                     "edn" (reader/read-string (:data msg))
+                                     "json" (js/JSON.parse (:data msg))))]
 
-                                (when (:new-session msg)
-                                  (object/raise this :new-session (:new-session msg)))
+                        (when (:new-session msg)
+                          (object/raise this :new-session (:new-session msg)))
 
-                                (when ((set (:status msg)) "interrupted")
-                                  (notifos/done-working))
+                        (when ((set (:status msg)) "interrupted")
+                          (notifos/done-working))
 
-                                (when op
-                                  (if (str-contains? op "client.")
-                                    (object/raise this (keyword op) info)
-                                    (object/raise clients/clients :message [(:id msg) op info])
-                                    )))))
+                        (when op
+                          (if (str-contains? op "client.")
+                            (object/raise this (keyword op) info)
+                            (object/raise clients/clients :message [(:id msg) op info])
+                            )))))
 
 (behavior ::try-connect!
-                  :triggers #{:try-connect!}
-                  :reaction (fn [this info]
-                              (when (:port @this)
-                                (object/raise this :connect!))))
+          :triggers #{:try-connect!}
+          :reaction (fn [this info]
+                      (when (:port @this)
+                        (object/raise this :connect!))))
 
 (behavior ::connect!
-                  :triggers #{:connect!}
-                  :reaction (fn [this]
-                              (object/merge! this {:socket (connect-to (:host @this "localhost") (:port @this) this)})))
+          :triggers #{:connect!}
+          :reaction (fn [this]
+                      (object/merge! this {:socket (connect-to (:host @this "localhost") (:port @this) this)})))
 
 (behavior ::close
-                  :triggers #{:close!}
-                  :reaction (fn [this]
-                              (clients/rem! this)))
+          :triggers #{:close!}
+          :reaction (fn [this]
+                      (clients/rem! this)))
 
 (defn send* [client msg]
   (let [c (encode msg)]
