@@ -128,9 +128,9 @@
                       (editor/focus (:main @this))))
 
 (def default-content ";; Anything you type in here will be executed
-  ;; immediately with the results shown on the
-  ;; right.
-  ")
+;; immediately with the results shown on the
+;; right.
+")
 
 (defn clean-ex [x]
   (.replace x (js/RegExp. "^.*user/eval[\\s\\S]*" "gmi") ""))
