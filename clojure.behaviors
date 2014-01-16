@@ -42,10 +42,8 @@
 
  :editor.clj.hints [:lt.plugins.clojure/clj-result ;; to get hints
                     :lt.plugins.clojure/trigger-update-hints
-                    :lt.plugins.clojure/start-update-hints
                     :lt.plugins.clojure/finish-update-hints
                     :lt.plugins.clojure/use-local-hints
-                    :lt.plugins.clojure/use-global-hints
                     ]
 
   :editor.clj.common [:lt.plugins.clojure/on-result-set-ns

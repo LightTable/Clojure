@@ -13,6 +13,7 @@
             [lt.objs.connector :as connector]
             [lt.objs.popup :as popup]
             [lt.objs.platform :as platform]
+            [lt.plugins.auto-complete :as auto-complete]
             [lt.objs.statusbar :as status]
             [lt.objs.proc :as proc]
             [lt.objs.eval :as eval]
@@ -616,50 +617,34 @@
 ;;****************************************************
 
 (behavior ::trigger-update-hints
-          :triggers #{:editor.eval.clj.result
-                      :editor.eval.cljs.result}
+          :triggers #{:editor.clj.hints.update!}
           :debounce 100
           :reaction (fn [editor res]
                       (when-let [default-client (-> @editor :client :default)] ;; dont eval unless we're already connected
                         (when @default-client
-                          (object/raise editor :editor.clj.hints.update)))))
-
-(behavior ::start-update-hints
-          :triggers #{:editor.clj.hints.update}
-          :reaction (fn [editor res]
-                      (let [info (:info @editor)]
-                        (clients/send (eval/get-client! {:command :editor.clj.hints
-                                                         :info info
-                                                         :origin editor
-                                                         :create try-connect})
-                                      :editor.clj.hints info :only editor))))
+                          (let [info (:info @editor)
+                                command (->dottedkw :editor (-> info :mime mime->type) :hints)]
+                            (clients/send (eval/get-client! {:command command
+                                                             :info info
+                                                             :origin editor
+                                                             :create try-connect})
+                                          command info :only editor))))))
 
 (behavior ::finish-update-hints
-          :triggers #{:editor.clj.hints.result}
+          :triggers #{:editor.clj.hints.result
+                      :editor.cljs.hints.result}
           :reaction (fn [editor res]
-                      (object/merge! (-> @editor :client :default)
-                                     {::hints res})))
+                      (object/merge! editor {::hints res})
+                      (object/raise auto-complete/hinter :refresh!)))
 
 (behavior ::use-local-hints
           :triggers #{:hints+}
-          :reaction (fn [editor hints]
-                      (if-let [default-client (-> @editor :client :default)]
-                        (if-let [clj-hints (-> default-client deref ::hints)]
-                          (let [ns (-> @editor :info :ns)
-                                type (-> @editor :info :mime mime->type)]
-                            (concat (-> clj-hints (aget type) (aget (str ns))) hints))
-                          hints)
-                        hints)))
-
-(behavior ::use-global-hints
-          :triggers #{:hints+}
-          :reaction (fn [editor hints]
-                      (if-let [default-client (-> @editor :client :default)]
-                        (if-let [clj-hints (-> default-client deref ::hints)]
-                          (let [ns (-> @editor :info :ns)
-                                type (-> @editor :info :mime mime->type)]
-                            (concat (-> clj-hints (aget type) (aget "")) hints))
-                          hints)
+          :reaction (fn [editor hints token]
+                      (when (not= token (::token @editor))
+                        (object/merge! editor {::token token})
+                        (object/raise editor :editor.clj.hints.update!))
+                      (if-let [clj-hints (::hints @editor)]
+                        (concat clj-hints hints)
                         hints)))
 
 ;;****************************************************

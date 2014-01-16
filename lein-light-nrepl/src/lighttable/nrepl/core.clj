@@ -20,6 +20,8 @@
                         :commands [:editor.eval.clj
                                    :editor.clj.doc
                                    :editor.cljs.doc
+                                   :editor.clj.hints
+                                   :editor.cljs.hints
                                    :docs.clj.search
                                    :docs.cljs.search
                                    :editor.eval.clj.sonar

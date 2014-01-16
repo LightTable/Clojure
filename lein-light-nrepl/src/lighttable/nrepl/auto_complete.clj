@@ -1,12 +1,13 @@
 (ns lighttable.nrepl.auto-complete
   (:require [lighttable.nrepl.core :as core]
+            [lighttable.nrepl.eval :as eval]
             [complete.core]))
 
 (defn completion [string]
   {:completion string})
 
 (defn completions [strings]
-  (map completion strings))
+  (map completion (remove #(> (.indexOf % "__BEH__") -1) strings)))
 
 (defn clj-hints-for-ns [ns]
   (completions
@@ -27,28 +28,8 @@
           var (complete.core/ns-public-vars required-ns)]
       (str alias "/" var)))))
 
-(defn clj-hints-global []
-  (completions
-   (concat
-    ;; global namespaces
-    (for [required-ns (all-ns)]
-      (str required-ns))
-    ;; global vars
-    (for [required-ns (all-ns)
-          var (complete.core/ns-public-vars required-ns)]
-      (str required-ns "/" var))
-    ;; global classes
-    ;; TODO completing these is very slow
-    ;; (deref complete.core/top-level-classes 0 nil)
-    ;; (deref complete.core/nested-classes 0 nil)
-    ;; TODO static methods
-    )))
-
-(defn clj-hints []
-  (assoc
-    (into {} (for [ns (all-ns)]
-               [(str ns) (clj-hints-for-ns ns)]))
-    "" (clj-hints-global)))
+(defn clj-hints [ns-name]
+  (clj-hints-for-ns ns-name))
 
 (defn cljs-hints-for-ns [ns nss]
   (completions
@@ -71,28 +52,16 @@
           def (-> nss (get aliased-ns) :defs keys)]
       (str alias "/" def)))))
 
-(defn cljs-hints-global [nss]
-  (completions
-   (concat
-    ;; global namespaces
-    (for [global-ns (-> nss keys)]
-      (str global-ns))
-    ;; global vars
-    (for [[global-ns val] nss
-          def (-> val :defs keys)]
-      (str global-ns "/" def)))))
-
-(defn cljs-hints []
+(defn cljs-hints [ns-name]
   (let [nss (-> @lighttable.nrepl.cljs/compiler-env :cljs.analyzer/namespaces)]
-    (assoc
-      (into {} (for [ns (keys nss)]
-               [(str ns) (cljs-hints-for-ns ns nss)]))
-      "" (cljs-hints-global nss))))
+    (cljs-hints-for-ns ns-name nss)))
 
-(defn hints []
-  {"clj" (clj-hints)
-   "cljs" (cljs-hints)})
+(defmethod core/handle "editor.clj.hints" [{:keys [session ns path] :as msg}]
+  (let [ns (or ns (eval/normalize-ns ns path))]
+    (core/respond msg "editor.clj.hints.result" (clj-hints ns) "json")
+    @session))
 
-(defmethod core/handle "editor.clj.hints" [{:keys [session] :as msg}]
-  (core/respond msg "editor.clj.hints.result" (hints) "json")
-  @session)
+(defmethod core/handle "editor.cljs.hints" [{:keys [session ns path] :as msg}]
+  (let [ns (or ns (eval/normalize-ns ns path))]
+    (core/respond msg "editor.clj.hints.result" (cljs-hints ns) "json")
+    @session))
