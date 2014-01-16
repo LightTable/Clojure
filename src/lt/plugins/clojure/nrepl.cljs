@@ -1,5 +1,6 @@
 (ns lt.plugins.clojure.nrepl
   (:require [lt.object :as object]
+            [lt.objs.console :as console]
             [lt.objs.clients :as clients]
             [lt.objs.files :as files]
             [lt.objs.notifos :as notifos]
@@ -60,7 +61,10 @@
   (when (> queue-index 20)
     (.splice queue 0 queue-index)
     (set! queue-index 0))
-  (object/raise client ::message (aget queue queue-index))
+  (try
+    (object/raise client ::message (aget queue queue-index))
+    (catch :default e
+      (console/error e)))
   (if (>= queue-index (.-length queue))
     (do
       (set! running? false)

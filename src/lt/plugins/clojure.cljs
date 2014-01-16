@@ -347,7 +347,11 @@
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta)
                                  :start-line (dec (:line meta))}
                             msg (or (:stack res) (:ex res))
-                            stack (or (:stack res) (.-stack (:ex res)))]
+                            stack (or (:stack res)
+                                      (when (:ex res)
+                                        (.-stack (:ex res)))
+                                      msg
+                                      "Unknown error")]
                         (notifos/set-msg! msg {:class "error"})
                         (object/raise obj :editor.exception stack loc))
                       ))
