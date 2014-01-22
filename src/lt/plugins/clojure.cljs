@@ -165,7 +165,8 @@
                             res (update-in res [:results] #(for [r %]
                                                              (assoc r :code (-> (:code r)
                                                                                 (eval/pad (-> r :meta :line dec))
-                                                                                (eval/append-source-file path)))))]
+                                                                                (eval/append-source-file path))
+                                                               :meta (merge (:meta res) (:meta r)))))]
                         (clients/send (eval/get-client! {:command :editor.eval.cljs.exec
                                                          :info {:type "cljs"}
                                                          :key :exec
