@@ -158,16 +158,20 @@
 (defn with-js [{:keys [analysis file] :as cur}]
   (when analysis
     (with-cljs-env cur
-      (let [js (reduce #(str % %2 "\n") "" (map comp/emit-str analysis))
+      (let [js (reduce str (map comp/emit-str analysis))
             js (str "if(!lt.util.load.provided_QMARK_('" (:name cur) "')) {\n" js "}\n")
             sm-ref (offset-source-map (source-map-ref) 1)
             sm (sm/encode {file sm-ref}
-                         {:lines (+ 3 (gen-line))
-                          :file  (str file ".map")})]
+                         {:lines (+ 2 (gen-line))
+                          :file  (str (or file (:name cur)) ".map")
+                          :relpaths {file (subs (str file) (.indexOf file "src/") (count (str file)))}
+                          :output-dir (subs (str file) 0 (.indexOf file "src/"))
+                          :source-map-path (subs (str file) 0 (dec (.indexOf file "src/")))
+                          })]
         (assoc cur
           :js js
           ;; we add an extra line at the end, and wrap it in an if provided check
-          :lines (+ 3 (gen-line))
+          :lines (+ 2 (gen-line))
           :source-map-internal sm-ref
           :source-map sm)))))
 
@@ -184,8 +188,10 @@
           deps (:requires dep)
           deps (if (not= ns 'goog)
                  (conj deps 'goog)
-                 deps)]
-      (into {primary {:js (slurp (io/resource (:file dep)))
+                 deps)
+          content (slurp (io/resource (:file dep)))]
+      (into {primary {:js content
+                      :lines (count (string/split content #"\n"))
                       :name ns
                       :deps (map symbol deps)}}
             (map #(vector (symbol %) primary) (rest (:provides dep)))))))
@@ -210,7 +216,7 @@
         (recur all left seen)
         ))))
 
-(defn transitive-all [{:keys [ignore nss files available]}]
+(defn transitive-all [{:keys [ignore nss files dir available]}]
   (let [type (if nss
                :ns
                :file)
@@ -221,7 +227,7 @@
                 (if-let [current (available (or (up-to-date? cur-file) cur-file))]
                   (merge final (transitive {(:name current) current} transitive-opts))
                   (merge final (transitive (cljs-dep {type cur-file}) transitive-opts)))))
-            {}
+            {:dir dir}
             (or files nss))))
 
 (defn dep-graph [all]
@@ -243,18 +249,24 @@
           deps))
 
 
-(defn concat-source-maps [ordered file]
+(defn concat-source-maps [ordered dir]
   (let [concated (reduce (fn [final cur]
-                           (let [lines (+ (:lines final) (:lines cur))]
                              (assoc final
-                               :lines lines
-                               :combined (merge (:combined final) {(:file cur) (offset-source-map (:source-map-internal cur) lines)}))))
+                               :lines (+ (:lines final) (:lines cur))
+                               :combined (merge (:combined final) {(:file cur) (offset-source-map (:source-map-internal cur) (:lines final))})))
                          {:lines 0
                           :combined {}}
-                         (filter :source-map-internal ordered))]
-    {:source-map (sm/encode (:combined concated)
-                         {:lines (:lines concated)
-                          :file  (str file ".map")})
+                         (filter :source-map-internal ordered))
+        remove-dir-pattern (re-pattern (-> (string/replace dir #"\\" "/")
+                                           (str "/")))]
+    {:source-map (-> (sm/encode (:combined concated)
+                                {:lines (:lines concated)
+                                 :file  (str dir "compiled.map")
+                                 :relpaths (into {} (map #(do [(:file %) (subs (:file %) (.indexOf (:file %) "src/") (count (:file %)))]) ordered))
+                                 :output-dir dir
+                                 :source-map-path dir})
+                     (string/replace remove-dir-pattern ""))
+     :lines (:lines concated)
      :source-map-internal (:combined concated)}
     ))
 
@@ -276,6 +288,7 @@
 (defn compile-all [to-compile]
   (let [all (transitive-all to-compile)]
     {:namespaces all
+     :dir (:dir to-compile)
      :ignore (:ignore to-compile)}))
 
 (defn with-provides [compiled]
@@ -294,11 +307,11 @@
       (assoc cur :ordered ordered)
       (assoc cur :cycles (->cycles (dep-graph namespaces))))))
 
-(defn with-merged-js [{:keys [ordered source-map] :as cur}]
+(defn with-merged-js [{:keys [ordered dir] :as cur}]
   (when ordered
     (merge cur
-           (concat-source-maps ordered source-map)
-           {:js (str (ordered-js ordered) "\n//# sourceMappingURL=" source-map)})))
+           (concat-source-maps ordered dir)
+           {:js (ordered-js ordered)})))
 
 (defn remove-modified [namespaces]
   (let [moded (reduce (fn [to-remove cur]
@@ -312,19 +325,20 @@
                       (vals namespaces))]
     (apply dissoc namespaces moded)))
 
-(defmethod core/handle "cljs.compile" [{:keys [ignore files nss merged? cljsbuild? session] :as msg}]
+(defmethod core/handle "cljs.compile" [{:keys [ignore dir files nss merged? cljsbuild? session] :as msg}]
   (with-compiler-env compiler-env
     (let [compiled  (-> (compile-all {:ignore (or ignore [])
                                       :nss nss
                                       :files files
+                                      :dir dir
                                       :available (remove-modified @build-env)})
                         (with-provides)
                         (with-ordered-deps)
                         (with-merged-js))
           final (if merged?
-                  (select-keys compiled [:provides :missing :cycles :js :source-map])
-                  (-> (select-keys compiled [:provides :missing :cycles :js :source-map])
-                      (assoc :ordered (mapv #(select-keys % [:name :js :source-map]) (:ordered compiled)))))]
+                  (select-keys compiled [:provides :missing :cycles :js :source-map :lines])
+                  (-> (select-keys compiled [:provides :missing :cycles :js :source-map :lines])
+                      (assoc :ordered (mapv #(select-keys % [:name :js :source-map :lines]) (:ordered compiled)))))]
       (reset! build-env (:namespaces compiled))
       (core/respond msg :cljs.compile.results final)
       @session)))

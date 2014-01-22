@@ -207,6 +207,7 @@
                       (let [to-compile (files/filter-walk #(= (files/ext %) "cljs") (files/join (:lt.objs.plugins/plugin-path @this) "src"))]
                         (object/raise clj-lang :build! {:info {:files to-compile
                                                                :mime (-> @this :info :mime)
+                                                               :dir (:lt.objs.plugins/plugin-path @this)
                                                                :path (files/join (:lt.objs.plugins/plugin-path @this) "plugin.edn")
                                                                :ignore ['goog
                                                                         'goog.array
@@ -232,10 +233,12 @@
           :desc "Plugin: output compile results"
           :reaction (fn [this res]
                       (let [plugin-name (-> (:lt.objs.plugins/plugin-path @this) plugins/plugin-info :name string/lower_case)
-                            final-path (files/join (:lt.objs.plugins/plugin-path @this) (str plugin-name "_compiled.js"))]
+                            final-path (files/join (:lt.objs.plugins/plugin-path @this) (str plugin-name "_compiled.js"))
+                            plugin-map-name (str plugin-name "_compiled.js.map")
+                            sm-path (files/join (:lt.objs.plugins/plugin-path @this) plugin-map-name)]
                         (notifos/done-working (str "Compiled plugin to " final-path))
-                        (files/save final-path (:js res)))
-                      ))
+                        (files/save final-path (str (:js res) "\n//# sourceMappingURL=" plugin-map-name))
+                        (files/save sm-path (:source-map res)))))
 
 (behavior ::on-result-set-ns
           :triggers #{:editor.eval.cljs.code
