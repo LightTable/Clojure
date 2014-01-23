@@ -1,4 +1,4 @@
-(defproject lein-light-nrepl "0.0.12"
+(defproject lein-light-nrepl "0.0.13"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
@@ -11,7 +11,7 @@
                  [ibdknox/analyzer "0.0.2"]
                  [clj-stacktrace "0.2.7"]
                  [fs "1.3.3"]
-                 [org.clojure/clojurescript "0.0-2127"
+                 [org.clojure/clojurescript "0.0-2138"
                    :exclusions [org.apache.ant/ant]]
                  [com.cemerick/pomegranate "0.2.0"]
                  [clojure-complete "0.2.3"]
