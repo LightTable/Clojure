@@ -352,8 +352,11 @@
                                  :start-line (dec (:line meta))}
                             msg (or (:stack res) (:ex res))
                             stack (or (:stack res)
-                                      (when (:ex res)
-                                        (.-stack (:ex res)))
+                                      (if (and (:ex res)
+                                               (.-stack (:ex res)))
+                                        (.-stack (:ex res))
+                                        (if (:ex res)
+                                          (pr-str (:ex res))))
                                       msg
                                       "Unknown error")]
                         (notifos/set-msg! msg {:class "error"})
