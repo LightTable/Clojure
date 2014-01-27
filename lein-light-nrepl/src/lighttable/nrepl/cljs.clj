@@ -132,6 +132,7 @@
             mtime (when (fs/exists? file-loc) (fs/mod-time (io/as-file file)))]
         (with-cljs-env cur
           (assoc cur
+            :file file-loc
             :forms (eval/lined-read (slurp file))
             :mtime mtime))))))
 
@@ -155,18 +156,19 @@
                              (when-not (= (-> ns :name) 'cljs.core)
                                #{'cljs.core}))))))))
 
-(defn with-js [{:keys [analysis file] :as cur}]
+(defn with-js [{:keys [analysis file dir] :as cur}]
   (when analysis
     (with-cljs-env cur
       (let [js (reduce str (map comp/emit-str analysis))
             js (str "if(!lt.util.load.provided_QMARK_('" (:name cur) "')) {\n" js "}\n")
             sm-ref (offset-source-map (source-map-ref) 1)
+            rel-path (subs file (inc (count dir)) (count file))
             sm (sm/encode {file sm-ref}
                          {:lines (+ 2 (gen-line))
                           :file  (str (or file (:name cur)) ".map")
-                          :relpaths {file (subs (str file) (.indexOf file "src/") (count (str file)))}
-                          :output-dir (subs (str file) 0 (.indexOf file "src/"))
-                          :source-map-path (subs (str file) 0 (dec (.indexOf file "src/")))
+                          :relpaths {file rel-path}
+                          :output-dir dir
+                          :source-map-path dir
                           })]
         (assoc cur
           :js js
@@ -183,23 +185,23 @@
     {(-> dep :name) dep}))
 
 (defn js-dep [{:keys [ns]}]
-  (when-let [dep (first (cljsc/js-dependencies {} [(str ns)]))]
-    (let [primary (-> dep :provides first symbol)
-          deps (:requires dep)
+  (when-let [dep (get (cljsc/js-dependency-index {}) (str ns))]
+    (let [deps (:requires dep)
           deps (if (not= ns 'goog)
                  (conj deps 'goog)
                  deps)
-          content (slurp (io/resource (:file dep)))]
-      (into {primary {:js content
+          content (slurp (io/resource (:file dep)))
+          content (str "if(!lt.util.load.provided_QMARK_('" (str ns) "')) {\n" content "}\n")]
+      (into {ns {:js content
                       :lines (count (string/split content #"\n"))
                       :name ns
                       :deps (map symbol deps)}}
-            (map #(vector (symbol %) primary) (rest (:provides dep)))))))
+            (map #(vector (symbol %) ns) (remove #{(str ns)} (:provides dep)))))))
 
 (defn dep->deps [dep]
   (set (mapcat #(-> % second :deps) dep)))
 
-(defn transitive [dep {:keys [seen available] :as cur}]
+(defn transitive [dep {:keys [seen available dir] :as cur}]
   (loop [all dep
          left (set/difference (dep->deps dep) seen)
          seen seen]
@@ -208,8 +210,11 @@
       (let [cur-ns (first left)
             dep (if-let [avail (get available cur-ns)]
                   {cur-ns avail}
-                  (or (js-dep {:ns cur-ns}) (cljs-dep {:ns cur-ns})))
-            [seen all] (if (or (not cur-ns) (not dep))
+                  (or (js-dep {:ns cur-ns
+                               :dir dir})
+                      (cljs-dep {:ns cur-ns
+                                 :dir dir})))
+            [seen all] (if-not dep
                          [(conj seen cur-ns) all]
                          [(apply conj seen cur-ns (keys dep)) (merge all dep)])
             left (set/difference (into left (dep->deps dep)) seen)]
@@ -223,11 +228,13 @@
         ignore (set ignore)
         up-to-date? (into {} (map (juxt :file :name) (vals available)))]
     (reduce (fn [final cur-file]
-              (let [transitive-opts {:seen (into ignore (set (keys final))) :available available}]
+              (let [transitive-opts {:seen (into ignore (set (keys final)))
+                                     :available available
+                                     :dir dir}]
                 (if-let [current (available (or (up-to-date? cur-file) cur-file))]
                   (merge final (transitive {(:name current) current} transitive-opts))
                   (merge final (transitive (cljs-dep {type cur-file}) transitive-opts)))))
-            {:dir dir}
+            {}
             (or files nss))))
 
 (defn dep-graph [all]
@@ -240,7 +247,7 @@
            (kahn-sort)
            (reverse))
        (map all)
-       (filterv identity)))
+       (filterv map?)))
 
 (defn ordered-js [deps]
   (reduce (fn [final cur]
@@ -253,16 +260,19 @@
   (let [concated (reduce (fn [final cur]
                              (assoc final
                                :lines (+ (:lines final) (:lines cur))
-                               :combined (merge (:combined final) {(:file cur) (offset-source-map (:source-map-internal cur) (:lines final))})))
+                               :combined (if-not (:source-map-internal cur)
+                                           (:combined final)
+                                           (merge (:combined final) {(:file cur) (offset-source-map (:source-map-internal cur) (:lines final))}))))
                          {:lines 0
                           :combined {}}
-                         (filter :source-map-internal ordered))
+                         (filter :lines ordered))
         remove-dir-pattern (re-pattern (-> (string/replace dir #"\\" "/")
                                            (str "/")))]
     {:source-map (-> (sm/encode (:combined concated)
                                 {:lines (:lines concated)
-                                 :file  (str dir "compiled.map")
-                                 :relpaths (into {} (map #(do [(:file %) (subs (:file %) (.indexOf (:file %) "src/") (count (:file %)))]) ordered))
+                                 :file  (str dir "/compiled.map")
+                                 :relpaths (into {} (map #(do [(:file %) (subs (:file %) (inc (count dir)) (count (:file %)))])
+                                                         (filter :file ordered)))
                                  :output-dir dir
                                  :source-map-path dir})
                      (string/replace remove-dir-pattern ""))

@@ -1,5 +1,20 @@
 #Changes
 
+##0.0.6
+
+* FIX: bug with external cljs dependencies and plugin building
+* FIX: handle alternative exception types better
+* UPDATE: lein-light-nrepl is now 0.0.14
+
+##0.0.5
+
+* FIX: handle custom eval in external browsers correctly.
+* UPDATE: ClojureScript 2138
+
+##0.0.4
+
+* ADDED: source maps for plugins
+
 ##0.0.3
 
 * ADDED: Make hints async to remove the weird slow downs on eval.
