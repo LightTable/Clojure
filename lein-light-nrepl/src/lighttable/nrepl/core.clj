@@ -89,10 +89,15 @@
                               :eval-msg msg)
                  (binding [*msg* msg
                            *ltmsg* msg]
-                   (returning (dissoc (handle msg) #'*msg* #'*ltmsg*)
-                              (transport/send
-                               transport (response-for msg :status :done))
-                              (alter-meta! session dissoc :thread :eval-msg)))
+                   (let [result (handle msg)
+                         ;; do not let a bad handler nuke the session and as a result kill a connection
+                         result (if-not result
+                                  @session
+                                  (dissoc result #'*msg* #'*ltmsg*))]
+                     (returning result
+                                (transport/send
+                                 transport (response-for msg :status :done))
+                                (alter-meta! session dissoc :thread :eval-msg))))
                    (catch Exception e
                      (.printStackTrace e)))))))
 

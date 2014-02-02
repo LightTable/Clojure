@@ -14,6 +14,8 @@
    (concat
     ;; special forms
     complete.core/special-forms
+    ;; clojure.core
+    (complete.core/ns-vars 'clojure.core)
     ;; local vars
     (complete.core/ns-vars ns)
     ;; local classes
@@ -29,13 +31,16 @@
       (str alias "/" var)))))
 
 (defn clj-hints [ns-name]
-  (clj-hints-for-ns ns-name))
+  (clj-hints-for-ns (symbol ns-name)))
 
 (defn cljs-hints-for-ns [ns nss]
   (completions
    (concat
     ;; special forms
     complete.core/special-forms
+    ;; cljs.core
+    (for [def (-> nss (get 'cljs.core) :defs keys)]
+      (str def))
     ;; local vars
     ;; TODO filter private defs
     (for [def (-> nss (get ns) :defs keys)]
@@ -54,14 +59,14 @@
 
 (defn cljs-hints [ns-name]
   (let [nss (-> @lighttable.nrepl.cljs/compiler-env :cljs.analyzer/namespaces)]
-    (cljs-hints-for-ns ns-name nss)))
+    (cljs-hints-for-ns (symbol ns-name) nss)))
 
 (defmethod core/handle "editor.clj.hints" [{:keys [session ns path] :as msg}]
-  (let [ns (or ns (eval/normalize-ns ns path))]
+  (let [ns (eval/normalize-ns ns path)]
     (core/respond msg "editor.clj.hints.result" (clj-hints ns) "json")
     @session))
 
 (defmethod core/handle "editor.cljs.hints" [{:keys [session ns path] :as msg}]
-  (let [ns (or ns (eval/normalize-ns ns path))]
+  (let [ns (eval/normalize-ns ns path)]
     (core/respond msg "editor.clj.hints.result" (cljs-hints ns) "json")
     @session))
