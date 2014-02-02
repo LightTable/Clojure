@@ -1,5 +1,10 @@
 #Changes
 
+##0.0.7
+
+* FIX: auto-complete would sometimes break the instarepl
+* ADDED: clojure.core and cljs.core to auto-complete by default
+
 ##0.0.6
 
 * FIX: bug with external cljs dependencies and plugin building
