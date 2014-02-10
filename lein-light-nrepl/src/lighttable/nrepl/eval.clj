@@ -133,8 +133,16 @@
 
 (defn ->ns [content]
   (try
-    (let [c (read-string content)]
-      (name (first (filter symbol? (rest c)))))
+    (let [c (read-string content)
+          ns-type (name (first c))]
+      (case ns-type
+        "ns" (name (first (filter symbol? (rest c))))
+        "in-ns" (-> c
+                    rest
+                    first
+                    second
+                    name)
+        nil))
     (catch Exception e
       )))
 
