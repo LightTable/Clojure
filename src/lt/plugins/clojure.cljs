@@ -356,7 +356,9 @@
                                                (.-stack (:ex res)))
                                         (.-stack (:ex res))
                                         (if (:ex res)
-                                          (pr-str (:ex res))))
+                                          (if (:verbatim meta)
+                                            (:ex res)
+                                            (pr-str (:ex res)))))
                                       msg
                                       "Unknown error")]
                         (notifos/set-msg! msg {:class "error"})
