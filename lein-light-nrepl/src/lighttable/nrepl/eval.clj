@@ -80,22 +80,22 @@
        :result (if (:verbatim opts)
                  res
                  (clean-serialize res opts))})
-    (catch Exception e
-      (let [trace (exception/clean-trace e)
-            msg (or (.getMessage e) (str e))]
-        {:meta (meta f)
-         :form f
-         :result msg
-         :stack trace
-         :ex true}))
-    (catch AssertionError e
-      (let [trace (exception/clean-trace e)
-            msg (or (.getMessage e) (str e))]
-        {:meta (meta f)
-         :form f
-         :result msg
-         :stack trace
-         :ex true}))))
+    (catch Throwable e
+      (try
+        (let [trace (exception/clean-trace e)
+              msg (or (.getMessage e) (str e))]
+          {:meta (meta f)
+           :form f
+           :result msg
+           :stack trace
+           :ex true})
+        (catch Throwable e22
+          {:meta (meta f)
+           :form f
+           :result (str "ERROR: " e)
+           :stack (str "ERROR: " e)
+           :ex true}
+          )))))
 
 (defn require|create-ns [ns]
   (try
