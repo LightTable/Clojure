@@ -38,7 +38,7 @@
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                  :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]
-    (println "final project: " (pr-str (:dependencies project)))
+    (println "final project: " project)
       project))
 
 (defn find-clojure-version [proj]
