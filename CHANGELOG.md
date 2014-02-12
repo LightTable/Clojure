@@ -1,5 +1,9 @@
 #Changes
 
+##0.0.8
+
+* UPDATE: Leiningen 2.3.4
+
 ##0.0.7
 
 * FIX: auto-complete would sometimes break the instarepl
