@@ -89,11 +89,12 @@
            :result msg
            :stack trace
            :ex true})
-        (catch Throwable e22
+        (catch Throwable e2
+          (let [msg (str (.getName (class e)) ": " (.getMessage e) (ex-info e))])
           {:meta (meta f)
            :form f
-           :result (str "ERROR: " e)
-           :stack (str "ERROR: " e)
+           :result msg
+           :stack msg
            :ex true}
           )))))
 
