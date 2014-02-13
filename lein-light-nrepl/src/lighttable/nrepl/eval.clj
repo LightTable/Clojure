@@ -90,12 +90,12 @@
            :stack trace
            :ex true})
         (catch Throwable e2
-          (let [msg (str (.getName (class e)) ": " (.getMessage e) (ex-info e))])
-          {:meta (meta f)
-           :form f
-           :result msg
-           :stack msg
-           :ex true}
+          (let [msg (str (.getName (class e)) ": " (.getMessage e) (ex-data e))]
+            {:meta (meta f)
+             :form f
+             :result msg
+             :stack msg
+             :ex true})
           )))))
 
 (defn require|create-ns [ns]
