@@ -287,6 +287,15 @@
                           (object/raise obj :editor.eval.cljs.exception res :passed)
                           (object/raise obj :editor.result (unescape-unicode (or (:result res) "")) loc)))))
 
+(behavior ::cljs-result.inline-at-cursor
+          :triggers #{:editor.eval.cljs.result.inline-at-cursor}
+          :reaction (fn [obj res]
+                      (let [meta (:meta res)
+                            loc {:line (:start meta)
+                                 :start-line (:start meta)}]
+                        (if-let [err (or (:stack res) (:ex res))]
+                          (object/raise obj :editor.eval.cljs.exception res :passed)
+                          (object/raise obj :editor.result (unescape-unicode (or (:result res) "")) loc)))))
 
 (behavior ::clj-result
           :triggers #{:editor.eval.clj.result}
@@ -325,6 +334,18 @@
                               :let [meta (:meta result)
                                     loc {:line (dec (:end-line meta)) :ch (:end-column meta)
                                          :start-line (dec (:line meta))}]]
+                        (if (:stack result)
+                          (object/raise obj :editor.eval.clj.exception result :passed)
+                          (do
+                            (object/raise obj :editor.result (:result result) loc))))))
+
+(behavior ::clj-result.inline-at-cursor
+          :triggers #{:editor.eval.clj.result.inline-at-cursor}
+          :reaction (fn [obj res]
+                      (doseq [result (-> res :results)
+                              :let [meta (:meta result)
+                                    loc {:line (-> res :meta :start)
+                                         :start-line (-> res :meta :start)}]]
                         (if (:stack result)
                           (object/raise obj :editor.eval.clj.exception result :passed)
                           (do

@@ -66,6 +66,7 @@
                :lt.plugins.clojure/clj-result.inline
                :lt.plugins.clojure/clj-result.statusbar
                :lt.plugins.clojure/clj-result.replace
+               :lt.plugins.clojure/clj-result.inline-at-cursor
                :lt.plugins.clojure/clj-exception
                :lt.plugins.clojure/clj-watch-result
                :lt.plugins.clojure/clj-watch-src
@@ -83,6 +84,7 @@
                 :lt.plugins.clojure/cljs-result.inline
                 :lt.plugins.clojure/cljs-result.statusbar
                 :lt.plugins.clojure/cljs-result.replace
+                :lt.plugins.clojure/cljs-result.inline-at-cursor
                 :lt.plugins.clojure/cljs-exception
                 :lt.plugins.clojure/cljs-watch-result
                 :lt.plugins.clojure/cljs-watch-src
