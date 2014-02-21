@@ -12,8 +12,11 @@
 
 (def ^{:dynamic true} *ltmsg* nil)
 (def server (atom nil))
-(def clients (atom []))
+(def clients (atom {}))
 (def old-out System/out)
+(def old-err System/err)
+(def old-*out* *out*)
+(def old-*err* *err*)
 (def my-settings (atom {:name "clj"
                         :dir (fs/absolute-path fs/*cwd*)
                         :type "lein-light-nrepl"
@@ -63,11 +66,11 @@
        (transport/send (:transport msg) (response-for msg {:op (name op) :id (or (:id msg) (:client-id @my-settings)) :encoding encoding :data data}))))))
 
 (defn broadcast [op data]
-  (doseq [client @clients]
+  (doseq [client (vals @clients)]
     (respond client op data)))
 
 (defn broadcast-to [id op data]
-  (doseq [client @clients]
+  (doseq [client (vals @clients)]
     (respond (assoc client :id id) op data)))
 
 (defn safe-respond-to [id op data]
@@ -76,7 +79,10 @@
     (broadcast-to id op data)))
 
 (defn capture-client [msg]
-  (swap! clients conj (select-keys msg [:session :transport])))
+  (swap! clients assoc (-> msg :session meta :id) (select-keys msg [:session :transport])))
+
+(defn remove-client [msg]
+  (swap! clients dissoc (-> msg :session meta :id)))
 
 (defn queued [{:keys [op session id transport] :as msg} executor]
   (queue-eval session executor
@@ -151,6 +157,12 @@
     (alter-var-root #'*out* (fn [_] out))
     (alter-var-root #'*err* (fn [_] err))
     ))
+
+(defn restore-io []
+  (System/setOut old-out)
+  (System/setErr old-err)
+  (alter-var-root #'*out* (fn [_] old-*out*))
+  (alter-var-root #'*err* (fn [_] old-*err*)))
 
 (defn start [info]
   ;(reset! server (start-server :port 7888 :handler (default-handler #'lighttable-ops)))
