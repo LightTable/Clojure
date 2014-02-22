@@ -149,7 +149,10 @@
                                            :verbatim (:verbatim opts)
                                            :result-type (or (:result-type opts) :inline)
                                            :handler (if-let [handler (:handler opts)]
-                                                      (object/->id handler))})
+                                                      (object/->id handler))
+                                           :trigger (if-let [trigger (:trigger opts)]
+                                                      trigger
+                                                      :return)})
                             info (assoc info :print-length (object/raise-reduce editor :clojure.print-length+ nil))]
                         (object/raise clj-lang :eval! {:origin editor
                                                        :info info}))))
@@ -304,11 +307,13 @@
           :reaction (fn [obj res]
                       (let [meta (:meta res)
                             handler (-> meta :handler object/by-id)
-                            loc {:line (:start meta)
-                                 :start-line (:start meta)}]
+                            ev (:trigger meta)
+                            loc {:start (:start meta)
+                                 :end (:end meta)}]
                         (if-let [err (or (:stack res) (:ex res))]
                           (object/raise obj :editor.eval.cljs.exception res :passed)
-                          (object/raise handler :return (unescape-unicode (or (:result res) "")))))))
+                          (object/raise handler ev {:result (unescape-unicode (or (:result res) ""))
+                                                    :loc loc})))))
 
 (behavior ::clj-result
           :triggers #{:editor.eval.clj.result}
@@ -370,11 +375,12 @@
                       (doseq [result (-> res :results)
                               :let [meta (:meta result)
                                     handler (-> res :meta :handler object/by-id)
-                                    loc {:line (-> res :meta :start)
-                                         :start-line (-> res :meta :start)}]]
+                                    ev (-> res :meta :trigger)
+                                    loc {:start (-> res :meta :start)
+                                         :end (-> res :meta :end)}]]
                         (if (:stack result)
                           (object/raise obj :editor.eval.clj.exception result :passed)
-                          (object/raise handler :return (:result result))))))
+                          (object/raise handler ev {:result (:result result) :loc loc})))))
 
 (behavior ::clj-exception
           :triggers #{:editor.eval.clj.exception}
