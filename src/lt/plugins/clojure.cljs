@@ -144,10 +144,11 @@
                             info  (assoc info
                                     :code code
                                     :ns (or (:ns opts) (:ns info))
-                                    :meta {:start (-> (ed/->cursor editor "start") :line)
-                                           :end (-> (ed/->cursor editor "end") :line)
-                                           :verbatim (:verbatim opts)
-                                           :result-type (or (:result-type opts) :inline)})
+                                    :meta (merge {:start (-> (ed/->cursor editor "start") :line)
+                                                  :end (-> (ed/->cursor editor "end") :line)
+                                                  :result-type :inline
+                                                  :trigger :return}
+                                                 (update-in opts [:handler] object/->id)))
                             info (assoc info :print-length (object/raise-reduce editor :clojure.print-length+ nil))]
                         (object/raise clj-lang :eval! {:origin editor
                                                        :info info}))))
@@ -297,6 +298,17 @@
                           (object/raise obj :editor.eval.cljs.exception res :passed)
                           (object/raise obj :editor.result (unescape-unicode (or (:result res) "")) loc)))))
 
+(behavior ::cljs-result.return
+          :triggers #{:editor.eval.cljs.result.return}
+          :reaction (fn [obj res]
+                      (let [meta (:meta res)
+                            handler (-> meta :handler object/by-id)
+                            ev (:trigger meta)]
+                        (if-let [err (or (:stack res) (:ex res))]
+                          (object/raise obj :editor.eval.cljs.exception res :passed)
+                          (object/raise handler ev {:result (unescape-unicode (or (:result res) ""))
+                                                    :meta meta})))))
+
 (behavior ::clj-result
           :triggers #{:editor.eval.clj.result}
           :reaction (fn [obj res]
@@ -350,6 +362,18 @@
                           (object/raise obj :editor.eval.clj.exception result :passed)
                           (do
                             (object/raise obj :editor.result (:result result) loc))))))
+
+(behavior ::clj-result.return
+          :triggers #{:editor.eval.clj.result.return}
+          :reaction (fn [obj res]
+                      (doseq [result (-> res :results)
+                              :let [meta (:meta res)
+                                    handler (-> meta :handler object/by-id)
+                                    ev (:trigger meta)]]
+                        (if (:stack result)
+                          (object/raise obj :editor.eval.clj.exception result :passed)
+                          (object/raise handler ev {:result (:result result)
+                                                    :meta meta})))))
 
 (behavior ::clj-exception
           :triggers #{:editor.eval.clj.exception}
