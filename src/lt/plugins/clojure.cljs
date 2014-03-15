@@ -426,10 +426,10 @@
           :reaction (fn [this res len]
                       len))
 
-(object/object* :langs.clj
+(object/object* ::langs.clj
                 :tags #{:clojure.lang})
 
-(def clj-lang (object/create :langs.clj))
+(def clj-lang (object/create ::langs.clj))
 
 (behavior ::java-exe
           :triggers #{:object.instant}
