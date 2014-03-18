@@ -214,7 +214,7 @@
                       (let [cur (pool/last-active)
                             info (:info @cur)]
                         (when cur
-                          (if-not (= (:mime info) "text/x-clojure")
+                          (if-not (object/has-tag? cur :editor.clj)
                             (notifos/set-msg! "Instarepl only works for Clojure" {:class "error"})
                             (let [content (editor/->val cur)
                                   dirty (:dirty @cur)
