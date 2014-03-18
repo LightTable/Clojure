@@ -46,7 +46,7 @@ CodeMirror.defineMode("clojure", function () {
     char: /[^\s\(\[\{\}\]\)]/,
     keyword_char: /[^\s\(\[\;\)\]]/,
     basic: /[\w\$_\-\.\*\+\/\?\><!]/,
-    lang_keyword: /[\w\*\+!\-_?:\/\.#=]/,
+    lang_keyword: /[\w\*\+!\-_?:\/\.#=><]/,
   };
 
   function stateStack(indent, type, prev) { // represents a state stack object
@@ -177,7 +177,7 @@ CodeMirror.defineMode("clojure", function () {
       }
 
       // skip spaces
-      if (stream.eatSpace()) {
+      if (state.mode != "string" && stream.eatSpace()) {
         return null;
       }
       var returnType = null;
