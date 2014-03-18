@@ -1,5 +1,11 @@
 #Changes
 
+##0.0.10
+
+* FIX: disconnecting from a remote nrepl caused issues
+* FIX: make instarepl command wasn't correctly checking tags
+* UPDATE: ClojureScript 2173
+
 ##0.0.8
 
 * UPDATE: Leiningen 2.3.4
