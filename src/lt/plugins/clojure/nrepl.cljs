@@ -131,15 +131,17 @@
                                   :data (pr-str {:settings {:client-id (clients/->id this)
                                                             :dir (:dir @this)}})})))
 
+
 (behavior ::nrepl-message
           :triggers #{::message}
           :reaction (fn [this msg]
                       (let [op (:op msg)
                             encoding (:encoding msg)
                             info (when (:data msg)
-                                   (case encoding
+                                   (condp = encoding
                                      "edn" (reader/read-string (:data msg))
-                                     "json" (js/JSON.parse (:data msg))))]
+                                     "json" (js/JSON.parse (:data msg))
+                                     (reader/read-string (:data msg))))]
 
                         (when (:new-session msg)
                           (object/raise this :new-session (:new-session msg)))
