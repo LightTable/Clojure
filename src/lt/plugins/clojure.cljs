@@ -464,6 +464,14 @@
           :reaction (fn [this path]
                       (object/merge! clj-lang {:java-exe path})))
 
+(behavior ::java-opts
+          :triggers #{:object.instant}
+          :desc "Clojure: Set the options to the Java executable for clients"
+          :type :user
+          :exclusive true
+          :reaction (fn [this opts]
+                      (object/merge! clj-lang {:java-opts opts})))
+
 (behavior ::require-jar
           :triggers #{:connect}
           :reaction (fn [this path]
@@ -816,7 +824,8 @@
 
 (defn run-jar [{:keys [path project-path name client]}]
   (let [obj (object/create ::connecting-notifier n (clients/->id client))
-        args ["-Xmx1g" "-jar" (windows-escape jar-path)]]
+        args (into (or (:java-opts @clj-lang) ["-Xmx1g"])
+                   ["-jar" (windows-escape jar-path)])]
     (notifos/working "Connecting..")
     (.write console/core-log (str "STARTING CLIENT: " (jar-command project-path name client)))
     (proc/exec {:command (or (:java-exe @clj-lang) "java")
