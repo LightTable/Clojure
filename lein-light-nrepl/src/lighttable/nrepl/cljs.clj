@@ -9,6 +9,7 @@
             [lighttable.nrepl.exception :as exception]
             [cljs.compiler :as comp]
             [cljs.analyzer :as cljs]
+            [cljs.js-deps :as js-deps]
             [cljs.source-map :as sm]
             [cljs.env :as cljs-env :refer [with-compiler-env]]
             [clojure.test :as test]
@@ -185,7 +186,7 @@
     {(-> dep :name) dep}))
 
 (defn js-dep [{:keys [ns]}]
-  (when-let [dep (get (cljsc/js-dependency-index {}) (str ns))]
+  (when-let [dep (get (js-deps/js-dependency-index {}) (str ns))]
     (let [deps (:requires dep)
           deps (if (not= ns 'goog)
                  (conj deps 'goog)
