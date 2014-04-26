@@ -12,7 +12,7 @@
             [cljs.source-map :as sm]
             [cljs.env :as cljs-env :refer [with-compiler-env]]
             [clojure.test :as test]
-            [cljs.closure :as cljsc]
+            [cljs.js-deps :refer [js-dependency-index]]
             [clojure.java.io :as io]
             [cljs.tagged-literals :as tags]
             [clojure.set :as set :refer [difference union intersection]]
@@ -185,7 +185,7 @@
     {(-> dep :name) dep}))
 
 (defn js-dep [{:keys [ns]}]
-  (when-let [dep (get (cljsc/js-dependency-index {}) (str ns))]
+  (when-let [dep (get (js-dependency-index {}) (str ns))]
     (let [deps (:requires dep)
           deps (if (not= ns 'goog)
                  (conj deps 'goog)
