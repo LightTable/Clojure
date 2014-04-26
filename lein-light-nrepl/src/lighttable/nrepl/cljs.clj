@@ -12,7 +12,6 @@
             [cljs.source-map :as sm]
             [cljs.env :as cljs-env :refer [with-compiler-env]]
             [clojure.test :as test]
-            [cljs.js-deps :refer [js-dependency-index]]
             [clojure.java.io :as io]
             [cljs.tagged-literals :as tags]
             [clojure.set :as set :refer [difference union intersection]]
@@ -24,7 +23,16 @@
             [ibdknox.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
-
+(def js-dependency-index
+  "Try to get the js-dependency-index function from two places for
+  compatibility with older cljs. This should be removed after support for
+  cljs prior to 0.0-2197 is no longer desired"
+  (->>
+    (for [x ['cljs.closure/js-dependency-index
+             'cljs.js-deps/js-dependency-index]]
+      (some->> x resolve deref))
+    (filter identity)
+    (first)))
 
 (defn without
   "Returns set s with x removed."
