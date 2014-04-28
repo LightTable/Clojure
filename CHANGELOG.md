@@ -1,5 +1,9 @@
 #Changes
 
+##unreleased
+
+* UPDATE: ClojureScript 2202
+
 ##0.0.10
 
 * FIX: disconnecting from a remote nrepl caused issues
