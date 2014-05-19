@@ -233,7 +233,7 @@ CodeMirror.defineMode("clojure", function () {
             stream.eatWhile(tests.lang_keyword);
             return ATOM;
           } else {
-            stream.eatWhile(tests.basic);
+            stream.eatWhile(tests.lang_keyword);
 
             if (keywords && keywords.propertyIsEnumerable(stream.current())) {
               returnType = KEYWORD;
