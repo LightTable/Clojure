@@ -1,4 +1,4 @@
-(defproject lein-light-nrepl "0.0.17"
+(defproject lein-light-nrepl "0.0.18"
   :description "FIXME: write description"
   :url "http://example.com/FIXME"
   :license {:name "Eclipse Public License"
