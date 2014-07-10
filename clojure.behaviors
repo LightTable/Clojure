@@ -4,7 +4,7 @@
   :files [(:lt.objs.files/file-types [{:name "Clojure" :exts [:clj] :mime "text/x-clojure" :tags [:editor.clj :editor.clojure]}
                                       {:name "ClojureScript" :exts [:cljs] :mime "text/x-clojurescript" :tags [:editor.cljs :editor.clojurescript]}])]
 
-  :clojure.lang [:lt.plugins.clojure/connect
+  :clojure.lang [:lt.plugins.clojure/connect-local
                  :lt.plugins.clojure/eval!
                  :lt.plugins.clojure/build!]
 

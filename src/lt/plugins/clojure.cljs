@@ -450,11 +450,6 @@
           :reaction (fn [this res len]
                       len))
 
-(object/object* ::langs.clj
-                :tags #{:clojure.lang})
-
-(def clj-lang (object/create ::langs.clj))
-
 (behavior ::java-exe
           :triggers #{:object.instant}
           :desc "Clojure: set the path to the Java executable for clients"
@@ -478,7 +473,7 @@
 ;; Connectors
 ;;****************************************************
 
-(behavior ::connect
+(behavior ::connect-local
           :triggers #{:connect}
           :reaction (fn [this path]
                       (try-connect {:info {:path path}})))
@@ -877,3 +872,8 @@
       (find-project)
       (notify))
   (:client obj))
+
+(object/object* ::langs.clj
+                :tags #{:clojure.lang})
+
+(def clj-lang (object/create ::langs.clj))
