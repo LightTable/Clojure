@@ -144,6 +144,7 @@
 (defn inline [this res opts]
   (object/create :lt.objs.eval/inline-result {:ed this
                                               :class (name (:type opts :inline))
+                                              :instarepl true
                                               :opts opts
                                               :trunc-length 100
                                               :result res
@@ -154,15 +155,23 @@
   (let [main (-> @this :main)
         vs (-> results :vals reader/read-string)
         repls (-> results :uses)
-        out (:out results)]
+        out (:out results)
+        instarepl-atoms (->> @main :widgets vals (filter (comp :instarepl deref)))
+        non-instarepl-widgets (->> @main :widgets (remove (comp :instarepl deref second)) (into {}))]
     (editor/operation (:main @this)
                       (fn []
-                        (doseq [w (-> @main ::widgets)]
+                        (doseq [w instarepl-atoms]
                           (object/raise w :clear!))
-                        (object/merge! main {::widgets (doall (for [r repls
-                                                                    :let [[type val] (->type|val r vs)]]
-                                                                (inline main val {:type type
-                                                                                  :line (-> r :cur first dec)})))})))))
+                        (object/merge! main
+                                       {:widgets
+                                        (into non-instarepl-widgets
+                                              (doall (for [r repls
+                                                           :let [[type val] (->type|val r vs)
+                                                                 line (-> r :cur first dec)]]
+                                                       (vector
+                                                        [type line]
+                                                        (inline main val {:type type
+                                                                          :line line})))))})))))
 
 (behavior ::start-content
           :triggers #{:start-content+}
