@@ -2,9 +2,12 @@
   (:require [lighttable.nrepl.core :as core]
             [lighttable.nrepl.eval :as eval]
             [lighttable.nrepl.cljs :as cljs]
+            [clojure.java.io :as io]
+            [clojure.string :as string]
             [cljs.env :as env]
             [cljs.compiler :as comp]
-            [cljs.analyzer :as ana]))
+            [cljs.analyzer :as ana])
+  (:import java.net.URL java.io.File))
 
 (defn clean-meta [m]
   (when m
@@ -42,6 +45,37 @@
                              (str-contains? (str (:name m)) search)))]
                (format-result (clean-meta m)))))
 
+(def jar-temp-files
+  "Maps jar-url paths to temp files"
+  (atom {}))
+
+(defn jar-url->file
+  "Given a jar-url, retrieve its cached tempfile or copy its contents to a
+  tempfile and return it."
+  [^URL jar-url]
+  (or
+   (get @jar-temp-files (.getPath jar-url))
+   (let [[_ relative-name ext] (re-find #"!/(.*)(\.[^.]+)$" (.getPath jar-url))
+         new-file (.getPath (File/createTempFile relative-name ext))
+         body (-> jar-url .getContent slurp)]
+     (swap! jar-temp-files assoc (.getPath jar-url) new-file)
+     (spit new-file body)
+     new-file)))
+
+(defn resolve-file
+  "Resolves a file to its full path. Jar paths are unpacked to a tempfile."
+  [file]
+  (when file
+    (let [url (or (io/resource file)
+                  (URL.
+                   ;; cljs files don't have jar:file: or file: prefix off of metadata
+                   (if (.contains file ".jar!/")
+                     (string/replace-first file #"^file:" "jar:file:")
+                     (string/replace-first file #"^/" "file:/"))))]
+      (if (= "jar" (.getProtocol url))
+        (jar-url->file url)
+        (-> url io/file .getPath)))))
+
 (defn dmeta [nsp sym]
   (-> (ns-resolve (symbol nsp) sym)
       (meta)
@@ -77,8 +111,9 @@
 (defmethod core/handle "editor.clj.doc" [{:keys [ns sym loc session path result-type] :as msg}]
   (let [ns (eval/normalize-ns ns path)
         _ (eval/require|create-ns (symbol ns))
-        res (get-doc ns sym)
-        res (when res (assoc res :loc loc :result-type result-type))]
+        res (some-> (get-doc ns sym)
+                    (assoc :loc loc :result-type result-type)
+                    (update-in [:file] resolve-file))]
     (core/respond msg "editor.clj.doc" res))
   @session)
 
@@ -91,7 +126,9 @@
                                  res (if (:macro clj)
                                        clj
                                        (get-cljs-doc ns sym))
-                                 res (when res (assoc res :loc loc :result-type result-type))]
+                                 res (some-> res
+                                             (assoc :loc loc :result-type result-type)
+                                             (update-in [:file] resolve-file))]
                              (core/respond msg "editor.cljs.doc" res))))
   @session)
 
