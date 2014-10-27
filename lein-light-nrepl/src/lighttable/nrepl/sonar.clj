@@ -144,10 +144,10 @@
   (when (coll? f)
     (= (first f) 'clojure.core/deref)))
 
-(defn cat [func expr]
+(defn cat-expr [func expr]
   (apply concat
     (when-let [res (func expr)] [res])
-    (map (partial cat func) (:children expr))))
+    (map (partial cat-expr func) (:children expr))))
 
 (defn ops [expr]
   (when-let [o (:op expr)]
@@ -162,7 +162,7 @@
   (let [non-symbol-forms (filter #(and (not (symbol? %))
                                        (not (nil? %))
                                        (not (deref-form? %))) forms)
-        vars (cat (by-op-type :var)
+        vars (cat-expr (by-op-type :var)
                   (cljs-env/with-compiler-env (cljs-env/default-compiler-env)
                                               (cljs/analyze {:locals {}} non-symbol-forms)))]
     (reduce (fn [all cur]
