@@ -1,6 +1,6 @@
 (defproject lein-light-nrepl "0.0.18"
-  :description "FIXME: write description"
-  :url "http://example.com/FIXME"
+  :description "nrepl client for Light Table clj and cljs eval."
+  :url "https://github.com/LightTable/Clojure/tree/master/lein-light-nrepl"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.5.1"]
