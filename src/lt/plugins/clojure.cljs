@@ -83,13 +83,6 @@
                     (fn [res r]
                       (js/String.fromCharCode (js/parseInt r 16))))))
 
-(defn cljs-result-format [n]
-  (cond
-   (fn? n) (str "(fn " (.-name n) " ..)")
-   (nil? n) "nil"
-   (= (pr-str n) "#<[object Object]>") (console/inspect n)
-   :else (pr-str n)))
-
 (defn try-connect [{:keys [info]}]
   (let [path (:path info)
         {:keys [project-path]} (when path (find-project {:path path}))]
