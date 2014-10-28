@@ -1,8 +1,19 @@
 #Changes
 
-##unreleased
+##0.0.14
 
+* FIX: jump to source for jars and relative paths in clj/cljs
+* FIX: Clear instarepl results with "Clear inline results"
+
+## 0.0.13
+
+* FIX: Connection issue
+
+##0.0.11
+
+* ADDED: namespace-qualified indents
 * UPDATE: ClojureScript 2202
+* FIX: Handle nrepl message with no encoding
 
 ##0.0.10
 
