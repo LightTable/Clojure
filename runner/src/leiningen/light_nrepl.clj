@@ -36,7 +36,8 @@
         profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.0.19"]
                                  [org.clojure/tools.reader "0.8.3"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
-                                 :init (with-meta init {:replace true})}}
+                                 :init (with-meta init {:replace true})}
+                 :jvm-opts ["-Djava.awt.headless=true"]}
         project (lp/merge-profiles project [profile])]
     (println "final project: " project)
       project))
