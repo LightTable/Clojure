@@ -473,7 +473,7 @@
 
 
 (scl/add-connector {:name "Clojure"
-                    :desc "Select a project.clj to connect to for either Clojure or ClojureScript."
+                    :desc "Select a project.clj to connect to."
                     :connect (fn []
                                (dialogs/file clj-lang :connect))})
 
