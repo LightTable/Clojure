@@ -121,12 +121,4 @@
               :lt.plugins.clojure.instarepl/no-op
               :lt.plugins.clojure.instarepl/cleanup-on-destroy
               :lt.plugins.clojure/eval-print-err
-              :lt.plugins.clojure/eval-print]
-
- :inline.result-group [:lt.plugins.clojure.instarepl/clear-mark
-                       :lt.plugins.clojure.instarepl/changed
-                       :lt.plugins.clojure.instarepl/soft-clear
-                       :lt.plugins.clojure.instarepl/expand-on-click
-                       :lt.plugins.clojure.instarepl/move-mark
-                       :lt.plugins.clojure.instarepl/shrink-on-double-click]
- }}
+              :lt.plugins.clojure/eval-print]}}
