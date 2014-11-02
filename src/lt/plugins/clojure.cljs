@@ -172,6 +172,8 @@
 (def mime->type {"text/x-clojure" "clj"
                  "text/x-clojurescript" "cljs"})
 
+(def default-cljs-client "ClojureScript Browser")
+
 (behavior ::eval!
           :triggers #{:eval!}
           :reaction (fn [this event]
@@ -182,7 +184,10 @@
                         (clients/send (eval/get-client! {:command command
                                                          :info info
                                                          :origin origin
-                                                         :create try-connect})
+                                                         :create (fn [arg]
+                                                                   (when (contains? (set (:tags info)) :editor.cljs)
+                                                                     ((-> @scl/clients :connectors (get default-cljs-client) :connect)))
+                                                                   (try-connect arg))})
                                       command info :only origin))))
 
 (behavior ::build!
