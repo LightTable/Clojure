@@ -10,9 +10,11 @@
             [lt.objs.deploy :as deploy]
             [lt.objs.console :as console]
             [lt.objs.editor :as ed]
+            [lt.objs.editor.pool :as pool]
             [lt.objs.connector :as connector]
             [lt.objs.popup :as popup]
             [lt.objs.platform :as platform]
+            [lt.objs.tabs :as tabs]
             [lt.plugins.auto-complete :as auto-complete]
             [lt.objs.statusbar :as status]
             [lt.objs.proc :as proc]
@@ -870,3 +872,24 @@
                 :tags #{:clojure.lang})
 
 (def clj-lang (object/create ::langs.clj))
+
+(def browser-paths
+  "Relative paths to search for when connecting to a clojurescript browser."
+  ["index.html" "resources/public/index.html" "public/index.html" "dev-resources/public/index.html"])
+
+(defn find-default-html-file
+  "Searches browser-paths for first relative path to exist and returns it."
+  [ed]
+  (let [project-dir (files/parent (files/walk-up-find (get-in @ed [:info :path]) "project.clj"))]
+    (some #(when (files/exists? (files/join project-dir %))
+             (str "file://" (files/join project-dir %)))
+          browser-paths)))
+
+(scl/add-connector {:name "ClojureScript Browser"
+                    :desc "Open a browser tab to eval ClojureScript"
+                    :connect (fn []
+                               (let [ed (pool/last-active)
+                                     default-file (find-default-html-file ed)]
+                                 (cmd/exec! :add-browser-tab default-file)
+                                 (when default-file
+                                   (tabs/active! ed))))})
