@@ -99,10 +99,12 @@
                       (object/raise clj-lang :eval! {:origin editor
                                                      :info (assoc (@editor :info)
                                                              :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                                             :code (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
-                                                                                                           cljs-watch
-                                                                                                           clj-watch)))})
-                      ))
+                                                             :code (str
+                                                                    (when (object/has-tag? editor :editor.cljs)
+                                                                      "(set! js/COMPILED true) ")
+                                                                    (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
+                                                                                                            cljs-watch
+                                                                                                            clj-watch))))})))
 
 (behavior ::on-eval.one
           :triggers #{:eval.one}
