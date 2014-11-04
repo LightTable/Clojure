@@ -2,6 +2,9 @@
 
 The official Clojure language plugin for Light Table.
 
+## First ClojureScript Repl
+
+Welcome first time ClojureScript users! Please see [David Nolen's tutorial](https://github.com/swannodette/lt-cljs-tutorial) to get familiar with ClojureScript and comfortable with LightTable's repl. Note while doing that tutorial you were in a namespace. A namespace is necessary for a LightTable repl. Once you have finished the tutorial, create your own ClojureScript project with `lein new mies my-project` and eval there. If you want to add dependencies to your project, read the [below section](#clojurescript-eval) as that requires a different type of LightTable connection.
 
 ## ClojureScript Eval
 
@@ -12,7 +15,6 @@ There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javasc
 2. `Browser` - Connect to a web page that has the compiled ClojureScript sourced. You must navigate the internal browser to that web page. Recommended for ease of use.
 
 3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
-
 
 ## For Commiters
 
