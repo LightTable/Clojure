@@ -93,16 +93,24 @@
       (or (clients/by-name local-name)
           (run-local-server (clients/client! :nrepl.client))))))
 
-(behavior ::on-eval
+(behavior ::on-eval.clj
           :triggers #{:eval}
           :reaction (fn [editor]
                       (object/raise clj-lang :eval! {:origin editor
                                                      :info (assoc (@editor :info)
                                                              :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                                             :code (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
-                                                                                                           cljs-watch
-                                                                                                           clj-watch)))})
-                      ))
+                                                             :code (watches/watched-range editor nil nil clj-watch))})))
+(behavior ::on-eval.cljs
+          :triggers #{:eval}
+          :reaction (fn [editor]
+                      (object/raise clj-lang :eval! {:origin editor
+                                                     :info (assoc (@editor :info)
+                                                             :print-length (object/raise-reduce editor :clojure.print-length+ nil)
+                                                             ;; COMPILED temporarily enabled to turn off goog.provide ns errors
+                                                             :code (str
+                                                                    "(set! js/COMPILED-temp js/COMPILED) (set! js/COMPILED true) "
+                                                                    (watches/watched-range editor nil nil cljs-watch)
+                                                                    "(set! js/COMPILED js/COMPILED-temp)"))})))
 
 (behavior ::on-eval.one
           :triggers #{:eval.one}

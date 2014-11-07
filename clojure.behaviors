@@ -54,8 +54,12 @@
                       :lt.plugins.clojure/on-eval.custom]
 
   :editor.clj.eval [:lt.plugins.clojure/on-eval.one
-                    :lt.plugins.clojure/on-eval
+                    :lt.plugins.clojure/on-eval.clj
                     :lt.plugins.clojure/eval-location]
+
+  :editor.cljs.eval [:lt.plugins.clojure/on-eval.one
+                     :lt.plugins.clojure/on-eval.cljs
+                     :lt.plugins.clojure/eval-location]
 
   :editor.clj [(:lt.object/add-tag :editor.clj.common)
                (:lt.object/add-tag :editor.clj.eval)
@@ -75,7 +79,7 @@
                :lt.plugins.clojure/print-clj-doc]
 
   :editor.cljs [(:lt.object/add-tag :editor.clj.common)
-                (:lt.object/add-tag :editor.clj.eval)
+                (:lt.object/add-tag :editor.cljs.eval)
                 :lt.plugins.clojure/eval-print
                 :lt.plugins.clojure/eval-print-err
                 :lt.plugins.clojure/exec.cljs!
