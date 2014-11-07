@@ -25,8 +25,7 @@
                         :lt.plugins.clojure/eval-print-err
                         :lt.plugins.clojure/eval-print
                         :lt.plugins.clojure/clj-result
-                        :lt.plugins.clojure/clj-exception
-                        :lt.plugins.clojure/install-dependencies]
+                        :lt.plugins.clojure/clj-exception]
 
   :nrepl.client [:lt.plugins.clojure.nrepl/client.settings
                  :lt.plugins.clojure.nrepl/init-session

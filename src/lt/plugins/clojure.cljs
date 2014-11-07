@@ -460,16 +460,6 @@
           :reaction (fn [this path]
                       (object/merge! clj-lang {:java-exe path})))
 
-(behavior ::require-jar
-          :triggers #{:connect}
-          :reaction (fn [this path]
-                      (let [code (pr-str `(pomegranate/add-classpath ~path))]
-                        (object/raise this :send! {:cb (object/->id this)
-                                                   :command :editor.eval.clj
-                                                   :data {:code code
-                                                          :ns "user"
-                                                          :meta {:result-type :dependencies}}}))))
-
 ;;****************************************************
 ;; Connectors
 ;;****************************************************
