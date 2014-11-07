@@ -24,7 +24,19 @@ There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javasc
   * Release the new version of lein-light-nrepl to [clojars](https://clojars.org/lein-light-nrepl)
 * No process for upgrading `clojure-mode.js` until [this issue](https://github.com/LightTable/Clojure/issues/26) is addressed.
 
-###License
+## ClojureScript Workflows
+
+For ClojureScript projects:
+
+Your project is connected to a browser. Recompile cljs outside of LT with project's cljs compile tool e.g. `lein cljsbuild auto`.
+Most changes can be evaled. However, if adding project dependencies or requires to ns, refresh the browser page after cljs has been compiled.
+
+For LightTable plugins:
+
+Your project is connected to `LightTable UI`. When you save any plugin cljs file, compiled js is generated and saved. Any change
+can be eval-ed.
+
+## License
 
 Copyright (C) 2013 Kodowa Inc.
 
