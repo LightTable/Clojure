@@ -29,7 +29,12 @@ There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javasc
 For ClojureScript projects:
 
 Your project is connected to a browser. Recompile cljs outside of LT with project's cljs compile tool e.g. `lein cljsbuild auto`.
-Most changes can be evaled. However, if adding project dependencies or requires to ns, refresh the browser page after cljs has been compiled.
+Most changes can be evaled. However, if adding project dependencies or requires to ns, use the `:client.refresh-connection` command
+to refresh the browser page. To automate this on-save, add this to `user.behaviors`:
+
+```clojurescript
+:editor.clojurescript [(:lt.objs.editor.file/on-save :client.refresh-connection)]
+```
 
 For LightTable plugins:
 
