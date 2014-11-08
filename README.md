@@ -38,6 +38,4 @@ can be eval-ed.
 
 ## License
 
-Copyright (C) 2013 Kodowa Inc.
-
-Distributed under the EPL, see license.md for the full text.
+Distributed under the MIT License, see license.md for the full text.
