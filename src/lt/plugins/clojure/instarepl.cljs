@@ -11,7 +11,7 @@
             [lt.plugins.watches :as watches]
             [lt.objs.tabs :as tabs]
             [lt.util.dom :refer [prevent]]
-            [lt.objs.sidebar.command :as cmd]
+            [lt.objs.command :as cmd]
             [crate.binding :refer [bound subatom]]
             [crate.core :as crate]
             [cljs.reader :as reader])
