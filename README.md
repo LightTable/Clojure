@@ -12,9 +12,9 @@ There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javasc
 
 1. `Light Table UI` - Connect to the LightTable js process. Great for a headless mode, writing plugins and to try out ClojureScript features. Note, you use the ClojureScript version that comes with LightTable.
 
-2. `Browser` - Connect to a web page that has the compiled ClojureScript sourced. You must navigate the internal browser to that web page. Recommended for ease of use.
+2. `Browser` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. You must navigate the internal browser to that web page. Recommended for ease of use.
 
-3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
+3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
 
 ## For Commiters
 
