@@ -6,14 +6,9 @@
   :dependencies [[org.clojure/clojure "1.5.1"]
                  [leiningen "2.3.4"
                   :exclusions [stencil]]
-                 [fs "1.3.3"]
-                 ]
-  ;:exclusions [org.clojure/clojurescript]
+                 [fs "1.3.3"]]
   :uberjar-name "lein-light-standalone.jar"
   :aot :all
-  :source-paths ["src/"
-                ;"/users/chris/repos/clojurescript/src/clj"
-               ;"/users/chris/repos/clojurescript/src/cljs"
-                 ]
+  :source-paths ["src/"]
   :jvm-opts ["-Xmx1g"]
   :main leiningen.light-nrepl)
