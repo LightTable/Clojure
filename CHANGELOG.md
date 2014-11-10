@@ -1,6 +1,15 @@
 #Changes
 
-##0.0.14
+## 0.1.0
+
+* ADDED: Refresh connection command
+* FIX: Reeval of clojurescript namespace
+* FIX: Clojure client description to avoid confusing clojurescript users
+* Remove old behavior and pomegranate dependency for lein-light-nrepl
+* ADDED: clojurescript docs
+* Switch to semver versioning
+
+## 0.0.14
 
 * FIX: jump to source for jars and relative paths in clj/cljs
 * FIX: Clear instarepl results with "Clear inline results"
