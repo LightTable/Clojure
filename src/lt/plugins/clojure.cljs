@@ -10,6 +10,7 @@
             [lt.objs.deploy :as deploy]
             [lt.objs.console :as console]
             [lt.objs.editor :as ed]
+            [lt.objs.editor.pool :as pool]
             [lt.objs.connector :as connector]
             [lt.objs.popup :as popup]
             [lt.objs.platform :as platform]
@@ -868,3 +869,9 @@
                 :tags #{:clojure.lang})
 
 (def clj-lang (object/create ::langs.clj))
+
+(cmd/command {:command :client.refresh-connection
+              :desc "Client: Refresh client connection"
+              :exec (fn []
+                      (when-let [client (-> (pool/last-active) deref :client :exec)]
+                        (object/raise client :client.refresh!)))})
