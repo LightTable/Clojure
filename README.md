@@ -16,14 +16,6 @@ There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javasc
 
 3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
 
-## For Commiters
-
-* When releasing a new plugin version and lein-light-nrepl has changed:
-  * Bump lein-light-nrepl and lein-light in runner/.
-  * Update the uberjar with `lein uberjar` in `runner/target/lein-light-standalone.jar`.
-  * Release the new version of lein-light-nrepl to [clojars](https://clojars.org/lein-light-nrepl)
-* No process for upgrading `clojure-mode.js` until [this issue](https://github.com/LightTable/Clojure/issues/26) is addressed.
-
 ## ClojureScript Workflows
 
 For ClojureScript projects:
@@ -44,3 +36,11 @@ can be eval-ed.
 ## License
 
 Distributed under the MIT License, see license.md for the full text.
+
+## For Commiters
+
+* When releasing a new plugin version and lein-light-nrepl has changed:
+  * Bump lein-light-nrepl and lein-light in runner/.
+  * Update the uberjar with `lein uberjar` in `runner/target/lein-light-standalone.jar`.
+  * Release the new version of lein-light-nrepl to [clojars](https://clojars.org/lein-light-nrepl)
+* No process for upgrading `clojure-mode.js` until [this issue](https://github.com/LightTable/Clojure/issues/26) is addressed.
