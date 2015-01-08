@@ -167,11 +167,13 @@
                                         (into non-instarepl-widgets
                                               (doall (for [r repls
                                                            :let [[type val] (->type|val r vs)
-                                                                 line (-> r :cur first dec)]]
+                                                                 line (-> r :cur first dec)
+                                                                 ch (-> r :cur second)
+                                                                 widget (inline main val {:type type
+                                                                          :line line})]]
                                                        (vector
-                                                        [type line]
-                                                        (inline main val {:type type
-                                                                          :line line})))))})))))
+                                                        [type line ch]
+                                                        widget))))})))))
 
 (behavior ::start-content
           :triggers #{:start-content+}
