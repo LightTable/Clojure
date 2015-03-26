@@ -470,6 +470,7 @@
           (when pos
             (core/respond msg :editor.eval.cljs.location (clojure.core/meta (first forms))))
           (with-compiler-env compiler-env
+            nil
             (comp/with-core-cljs
              (if-not (first forms)
                (core/respond msg :editor.eval.cljs.no-op {})
