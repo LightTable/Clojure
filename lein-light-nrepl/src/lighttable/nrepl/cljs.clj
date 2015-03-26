@@ -136,7 +136,8 @@
      (with-bindings bindings#
        (with-compiler-env compiler-env
          (cljs.compiler/with-core-cljs
-          ~@body)))))
+          nil
+          (fn [] ~@body))))))
 
 (defn with-forms [{:keys [file] :as cur}]
   (let [file (file|resource->file file)]
@@ -443,9 +444,10 @@
     (with-compiler-env compiler-env
       (binding [cljs/*cljs-ns* 'cljs.user]
         (comp/with-core-cljs
-         (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
-         (when (and path (fs/exists? path))
-           (cljs/analyze-file (str "file://" path))))))))
+          nil
+          (fn [] (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
+                 (when (and path (fs/exists? path))
+                   (cljs/analyze-file (str "file://" path)))))))))
 
 (defmethod core/handle "editor.eval.cljs" [{:keys [ns path code pos meta transport session] :as msg}]
     (let [ns (str ns)
@@ -478,8 +480,7 @@
                   (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
                                                                               (eval-cljs env f)))
                                                             :ns cljs/*cljs-ns*
-                                                            :meta (or meta {})})))
-             ))))
+                                                            :meta (or meta {})})))))))
    (catch Exception e
       (let [ex (ex-data e)]
         (core/respond msg :editor.eval.cljs.exception {:stack (exception/clean-trace e)
