@@ -470,8 +470,8 @@
           (when pos
             (core/respond msg :editor.eval.cljs.location (clojure.core/meta (first forms))))
           (with-compiler-env compiler-env
-            nil
             (comp/with-core-cljs
+              nil
              (if-not (first forms)
                (core/respond msg :editor.eval.cljs.no-op {})
                (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
