@@ -472,12 +472,14 @@
           (with-compiler-env compiler-env
             (comp/with-core-cljs
               nil
-             (if-not (first forms)
-               (core/respond msg :editor.eval.cljs.no-op {})
-               (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
-                                                                           (eval-cljs env f)))
-                                                         :ns cljs/*cljs-ns*
-                                                         :meta (or meta {})}))))))
+              (fn []
+                (if-not (first forms)
+                  (core/respond msg :editor.eval.cljs.no-op {})
+                  (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
+                                                                              (eval-cljs env f)))
+                                                            :ns cljs/*cljs-ns*
+                                                            :meta (or meta {})})))
+             ))))
    (catch Exception e
       (let [ex (ex-data e)]
         (core/respond msg :editor.eval.cljs.exception {:stack (exception/clean-trace e)
