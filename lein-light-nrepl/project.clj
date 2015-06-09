@@ -3,16 +3,15 @@
   :url "https://github.com/LightTable/Clojure/tree/master/lein-light-nrepl"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
-  :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/tools.nrepl "0.2.7"]
+  :dependencies [[org.clojure/clojure "1.7.0-RC1"]
+                 [org.clojure/tools.nrepl "0.2.10"]
                  [commons-io/commons-io "2.4"]
-                 [ibdknox/tools.reader "0.8.1"]
-                 [org.clojure/tools.reader "0.7.10"]
+                 [org.clojure/tools.reader "0.9.2"]
                  [ibdknox/analyzer "0.0.2"]
-                 [clj-stacktrace "0.2.7"]
+                 [clj-stacktrace "0.2.8"]
                  [fs "1.3.3"]
-                 [org.clojure/clojurescript "0.0-2760"
+                 [org.clojure/clojurescript "0.0-3308"
                    :exclusions [org.apache.ant/ant]]
-                 [clojure-complete "0.2.3"]
+                 [clojure-complete "0.2.4"]
                  [cheshire "5.2.0"]]
   :jvm-opts ["-Xmx1g"])
