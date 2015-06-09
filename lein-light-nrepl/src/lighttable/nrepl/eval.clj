@@ -15,7 +15,7 @@
 
 (defn try-read [rdr]
   (when rdr
-    (reader/read rdr false ::EOF)))
+    (reader/read {:read-cond :allow :features #{:clj} :eof ::EOF} rdr)))
 
 (defn lined-read [string]
   (let [rdr (rt/indexing-push-back-reader string)]
