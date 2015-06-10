@@ -147,7 +147,7 @@
         (with-cljs-env cur
           (assoc cur
             :file file-loc
-            :forms (eval/lined-read (slurp file))
+            :forms (eval/lined-read (slurp file) :cljs)
             :mtime mtime))))))
 
 (defn analyze [env form]
@@ -464,7 +464,7 @@
   (try
       (with-bindings bindings
         (let [code (eval/prep-code msg)
-              forms (eval/lined-read code)
+              forms (eval/lined-read code :cljs)
               env {:context :expr :file path :locals {}}
               forms (if-not pos
                       forms
