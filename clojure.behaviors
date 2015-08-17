@@ -2,7 +2,8 @@
  {:app [(:lt.objs.plugins/load-js ["codemirror/clojure-mode.js" "clojure_compiled.js"])]
 
   :files [(:lt.objs.files/file-types [{:name "Clojure" :exts [:clj] :mime "text/x-clojure" :tags [:editor.clj :editor.clojure]}
-                                      {:name "ClojureScript" :exts [:cljs] :mime "text/x-clojurescript" :tags [:editor.cljs :editor.clojurescript]}])]
+                                      {:name "ClojureScript" :exts [:cljs] :mime "text/x-clojurescript" :tags [:editor.cljs :editor.clojurescript]}
+                                      {:name "Clojure/ClojureScript" :exts [:cljc], :mime "text/x-clojure", :tags [:editor.clj :editor.clojure]}])]
 
   :clojure.lang [:lt.plugins.clojure/connect-local
                  :lt.plugins.clojure/eval!
