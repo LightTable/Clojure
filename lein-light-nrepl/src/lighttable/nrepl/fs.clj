@@ -1,6 +1,6 @@
 (ns lighttable.nrepl.fs
-  (:require
-    [clojure.java.io :as io]))
+  "Minimal implementation of fs 1.3.3"
+  (:require [clojure.java.io :as io]))
 
 (defn exists? [path]
   (.exists (io/file path)))
