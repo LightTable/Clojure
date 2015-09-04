@@ -154,7 +154,7 @@
 (defn update-res [this results]
   (let [main (-> @this :main)
         vs (-> results :vals reader/read-string)
-        repls (-> results :uses)
+        repls (-> results :uses distinct)
         out (:out results)
         instarepl-atoms (->> @main :widgets vals (filter (comp :instarepl deref)))
         non-instarepl-widgets (->> @main :widgets (remove (comp :instarepl deref second)) (into {}))]
