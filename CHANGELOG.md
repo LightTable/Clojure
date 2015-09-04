@@ -1,5 +1,13 @@
 #Changes
 
+## 0.1.2
+
+* ADDED: cljc syntax highlighting
+
+## 0.1.1
+
+* FIX: Inline results stacking
+
 ## 0.1.0
 
 * ADDED: Refresh connection command

@@ -7,7 +7,7 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [cheshire.core :as cheshire]
             [clj-stacktrace.repl :refer [pst+]]
-            [fs.core :as fs]
+            [lighttable.nrepl.fs :as fs]
             [clojure.repl :as repl]))
 
 (def ^{:dynamic true} *ltmsg* nil)
@@ -18,7 +18,7 @@
 (def old-*out* *out*)
 (def old-*err* *err*)
 (def my-settings (atom {:name "clj"
-                        :dir (fs/absolute-path fs/*cwd*)
+                        :dir (fs/absolute-path fs/cwd)
                         :type "lein-light-nrepl"
                         :commands [:editor.eval.clj
                                    :editor.clj.doc

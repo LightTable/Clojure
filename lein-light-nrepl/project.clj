@@ -9,7 +9,6 @@
                  [org.clojure/tools.reader "0.9.2"]
                  [ibdknox/analyzer "0.0.2"]
                  [clj-stacktrace "0.2.8"]
-                 [fs "1.3.3"]
                  [org.clojure/clojurescript "0.0-3308"
                    :exclusions [org.apache.ant/ant]]
                  [clojure-complete "0.2.4"]

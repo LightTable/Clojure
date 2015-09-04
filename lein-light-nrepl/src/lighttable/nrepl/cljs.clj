@@ -3,7 +3,7 @@
             [clojure.pprint :refer [pprint]]
             [clojure.test :as test]
             [clojure.string :as string]
-            [fs.core :as fs]
+            [lighttable.nrepl.fs :as fs]
             [lighttable.nrepl.eval :as eval]
             [lighttable.nrepl.core :as core]
             [lighttable.nrepl.exception :as exception]
