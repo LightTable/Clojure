@@ -6,7 +6,6 @@
             [clojure.tools.nrepl.misc :refer [response-for returning]]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [cheshire.core :as cheshire]
-            [clj-stacktrace.repl :refer [pst+]]
             [lighttable.nrepl.fs :as fs]
             [clojure.repl :as repl]))
 

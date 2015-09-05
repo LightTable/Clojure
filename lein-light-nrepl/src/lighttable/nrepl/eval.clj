@@ -1,6 +1,5 @@
 (ns lighttable.nrepl.eval
-  (:require [clj-stacktrace.repl :as stack]
-            [clojure.pprint :refer [pprint]]
+  (:require [clojure.pprint :refer [pprint]]
             [clojure.test :as test]
             [lighttable.nrepl.core :as core]
             [lighttable.nrepl.exception :as exception]
