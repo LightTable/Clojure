@@ -5,7 +5,7 @@
             [clojure.tools.nrepl.middleware.interruptible-eval :refer [interruptible-eval *msg*]]
             [clojure.tools.nrepl.misc :refer [response-for returning]]
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
-            [cheshire.core :as cheshire]
+            [clojure.data.json :as json]
             [lighttable.nrepl.fs :as fs]
             [clojure.repl :as repl]))
 
@@ -59,7 +59,7 @@
   ([msg op data encoding]
    (let [data (case encoding
                 "edn" (binding [*print-readably* true] (pr-str data))
-                "json" (cheshire/generate-string data))]
+                "json" (json/write-str data))]
      (if-not (:transport msg)
        (.println old-out (str "no transport: " msg))
        (transport/send (:transport msg) (response-for msg {:op (name op) :id (or (:id msg) (:client-id @my-settings)) :encoding encoding :data data}))))))

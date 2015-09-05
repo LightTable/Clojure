@@ -11,6 +11,5 @@
                  [clj-stacktrace "0.2.7"]
                  [org.clojure/clojurescript "0.0-2202"
                    :exclusions [org.apache.ant/ant]]
-                 [clojure-complete "0.2.3"]
-                 [cheshire "5.2.0"]]
+                 [clojure-complete "0.2.3"]]
   :jvm-opts ["-Xmx1g"])
