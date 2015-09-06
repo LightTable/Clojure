@@ -7,7 +7,7 @@
             [clojure.walk :as walk]
             [cljs.compiler :as compiler]
             [cljs.env :as cljs-env]
-            [lighttable.analyzer :as cljs]
+            [cljs.analyzer :as cljs]
             [clojure.set :as set]))
 
 (def ^{:dynamic true} *logs* (atom {}))
