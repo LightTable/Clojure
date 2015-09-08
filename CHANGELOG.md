@@ -1,5 +1,11 @@
 #Changes
 
+## 0.1.3
+
+* Remove fs and cheshire dependencies
+* Fix stacking for doseq
+* Use normal versions of tools.reader and cljs.analyzer instead of forks
+
 ## 0.1.2
 
 * ADDED: cljc syntax highlighting
