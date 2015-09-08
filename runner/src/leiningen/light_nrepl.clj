@@ -58,13 +58,20 @@
       (.printStackTrace e)
       (System/exit 1))))
 
+(defn maybe-del-classes [path]
+  (when (and (fs/exists? path) (fs/directory? path))
+    (fs/delete-dir path)))
+
 (defn check-project [path]
   (when (fs/exists? path)
     path))
 
 (defn -main [& [name]]
-  (let [path (str (fs/absolute-path fs/*cwd*) "/project.clj")]
+  (let [path (str (fs/absolute-path fs/*cwd*) "/project.clj")
+        classes-path (str (fs/absolute-path fs/*cwd*) "/target/classes")]
     (if (check-project path)
-      (light (lp/init-project (lp/read path)) name)
+      (do
+        (maybe-del-classes classes-path)
+        (light (lp/init-project (lp/read path)) name))
       (binding [*out* *err*]
         (println "Could not find project.clj file at: " path)))))
