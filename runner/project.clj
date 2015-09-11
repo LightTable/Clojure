@@ -1,4 +1,4 @@
-(defproject lein-light "0.1.0"
+(defproject lein-light "0.1.3"
   :description "FIXME: write description"
   :url "http://github.com/kodowa/lein-light"
   :license {:name "Eclipse Public License"

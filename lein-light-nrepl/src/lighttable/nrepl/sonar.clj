@@ -6,7 +6,7 @@
             [clojure.test :as test]
             [clojure.walk :as walk]
             [cljs.env :as cljs-env]
-            [ibdknox.analyzer :as cljs]
+            [cljs.analyzer :as cljs]
             [clojure.set :as set]))
 
 (def ^{:dynamic true} *logs* (atom {}))

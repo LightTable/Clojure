@@ -33,7 +33,7 @@
         init (if-let [cur-init (-> project :repl-options :init)]
                (list 'do cur-init init)
                init)
-        profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.1.0"]
+        profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.1.3"]
                                  [org.clojure/tools.reader "0.9.1"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                  :init (with-meta init {:replace true})}}
