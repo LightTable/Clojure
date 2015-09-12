@@ -28,22 +28,36 @@
 (defn proj->name [proj]
   (str (:name proj) " " (:version proj)))
 
+(defn clojure-1-7-or-greater? [ver]
+  (when ver
+    (let [{:keys [major minor patch]} (parse-version ver)]
+      (and (>= major 1)
+           (>= minor 7)
+           (>= patch 0)
+           ;; 1.7.0 candidates conflict with 1.7.0
+           (not (.startsWith ver "1.7.0-"))))))
+
+(defn find-clojure-version [proj]
+  (let [deps (:dependencies proj)]
+    (second (first (filter #(= (first %) 'org.clojure/clojure) deps)))))
+
 (defn prep [project name]
   (let [init `(swap! lighttable.nrepl.core/my-settings merge {:name ~(or name (str (:name project) " " (:version project))) :project (quote ~project)})
         init (if-let [cur-init (-> project :repl-options :init)]
                (list 'do cur-init init)
                init)
-        profile {:dependencies '[[lein-light-nrepl/lein-light-nrepl "0.1.3"]
-                                 [org.clojure/tools.reader "0.9.1"]]
+        lein-light-version (if (clojure-1-7-or-greater? (find-clojure-version project))
+                             ;; Maintained lein-light-nrepl
+                             "0.2.0"
+                             ;; Deprecated/unmaintained lein-light-nrepl
+                             "0.1.3")
+        profile {:dependencies [['lein-light-nrepl/lein-light-nrepl lein-light-version]
+                                '[org.clojure/tools.reader "0.9.1"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                  :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]
     (println "final project: " project)
       project))
-
-(defn find-clojure-version [proj]
-  (let [deps (:dependencies proj)]
-    (second (first (filter #(= (first %) 'org.clojure/clojure) deps)))))
 
 (defn light
   "Start a Light Table client for this project"
