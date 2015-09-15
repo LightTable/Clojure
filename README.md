@@ -14,15 +14,23 @@ This plugin works for projects on recent versions of ClojureScript e.g. 1.7.X. F
 
 Welcome first time ClojureScript users! Please see [David Nolen's tutorial](https://github.com/swannodette/lt-cljs-tutorial) to get familiar with ClojureScript and comfortable with LightTable's repl. Note while doing that tutorial you were in a namespace. A namespace is necessary for a LightTable repl. Once you have finished the tutorial, create your own ClojureScript project with `lein new mies my-project` and eval there. If you want to add dependencies to your project, read the [below section](#clojurescript-eval) as that requires a different type of LightTable connection.
 
+## Cljc eval
+
+By default, \*.cljc files are identified as Clojure files. Thus when you eval, it will eval as a
+Clojure file. If you'd like to eval as a ClojureScript file, run the command `Editor: Set current
+editor syntax`, select `ClojureScript` and then eval.
+
 ## ClojureScript Eval
 
-There are 3 ways to eval ClojureScript, 2 of which use your ClojureScript javascript. To add one of these connections, run the command `Connect: Add Connection`. The 3 connections to choose from:
+There are 3 options to eval ClojureScript, 2 of which use your ClojureScript javascript. To add one of these connections, run the command `Connect: Add Connection`. The 3 connections to choose from:
 
 1. `Light Table UI` - Connect to the LightTable js process. Great for a headless mode, writing plugins and to try out ClojureScript features. Note, you use the ClojureScript version that comes with LightTable.
 
 2. `Browser` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. You must navigate the internal browser to that web page. Recommended for ease of use.
 
 3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
+
+Note that for Browser options, compiled ClojureScript cannot be compiled with `:advanced` `:optimizations` mode.
 
 ## ClojureScript Workflows
 
