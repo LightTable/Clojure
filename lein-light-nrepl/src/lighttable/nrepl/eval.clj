@@ -12,13 +12,16 @@
             [clojure.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
-(defn try-read [rdr]
+(defn- try-read [rdr feature]
+  {:pre [(#{:clj :cljs} feature)]}
   (when rdr
-    (reader/read rdr false ::EOF)))
+    (reader/read {:read-cond :allow :features #{feature} :eof ::EOF} rdr)))
 
-(defn lined-read [string]
-  (let [rdr (rt/indexing-push-back-reader string)]
-    (take-while #(not= ::EOF %) (repeatedly #(try-read rdr)))))
+(defn lined-read
+  ([string] (lined-read string :clj))
+  ([string feature]
+   (let [rdr (rt/indexing-push-back-reader string)]
+     (take-while #(not= ::EOF %) (repeatedly #(try-read rdr feature))))))
 
 (defn find-form [forms pos]
   (let [cur-line (inc (:line pos))

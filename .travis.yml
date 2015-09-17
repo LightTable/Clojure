@@ -1,0 +1,11 @@
+language: clojure
+script:
+- cd runner && lein test
+jdk:
+- oraclejdk8
+notifications:
+  irc: "chat.freenode.net#lighttable"
+  email:
+  - gabriel.horner@gmail.com
+  - mrundberget@hotmail.com
+  - kenny.evitt@gmail.com
