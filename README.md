@@ -10,29 +10,37 @@ This plugin requires projects Clojure 1.5.1 and higher. Starting with 0.2.0 this
 
 This plugin works for projects on recent versions of ClojureScript e.g. 1.7.X. For projects with ClojureScript versions 0.0-2341 and higher, Clojure 1.7.0 is required.
 
-## First ClojureScript Repl
-
-Welcome first time ClojureScript users! Please see [David Nolen's tutorial](https://github.com/swannodette/lt-cljs-tutorial) to get familiar with ClojureScript and comfortable with LightTable's repl. Note while doing that tutorial you were in a namespace. A namespace is necessary for a LightTable repl. Once you have finished the tutorial, create your own ClojureScript project with `lein new mies my-project` and eval there. If you want to add dependencies to your project, read the [below section](#clojurescript-eval) as that requires a different type of LightTable connection.
-
 ## Cljc eval
 
 By default, \*.cljc files are identified as Clojure files. Thus when you eval, it will eval as a
 Clojure file. If you'd like to eval as a ClojureScript file, run the command `Editor: Set current
 editor syntax`, select `ClojureScript` and then eval.
 
+## First ClojureScript Repl
+
+Welcome first time ClojureScript users! Please see [David Nolen's tutorial](https://github.com/swannodette/lt-cljs-tutorial) to get familiar with ClojureScript and comfortable with LightTable's repl. Note while doing that tutorial you were in a namespace. A namespace is necessary for a LightTable repl. Once you have finished the tutorial, create your own ClojureScript project with `lein new mies my-project` and eval there. If you want to add dependencies to your project, read the [below section](#clojurescript-eval) as that requires a different type of LightTable connection.
+
 ## ClojureScript Eval
 
-There are 3 options to eval ClojureScript, 2 of which use your ClojureScript javascript. To add one of these connections, run the command `Connect: Add Connection`. The 3 connections to choose from:
+There are 4 options to eval ClojureScript, 3 of which use your ClojureScript javascript. To add one of these connections, run the command `Connect: Add Connection`. The 3 connections to choose from:
 
 1. `Light Table UI` - Connect to the LightTable js process. Great for a headless mode, writing plugins and to try out ClojureScript features. Note, you use the ClojureScript version that comes with LightTable.
 
-2. `Browser` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. You must navigate the internal browser to that web page. Recommended for ease of use.
+2. `ClojureScript Browser` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. The internal browser is automatically opened to a web page based on configurable paths from behavior `:lt.plugins.clojure/set-cljs-browser-paths`. Recommended for ease of use.
 
-3. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
+3. `Browser` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. You must navigate the internal browser to that web page.
+
+4. `Browser (External)` - Connect to a web page that has the compiled ClojureScript sourced e.g. `file:///path/to/index.html`. In addition to navigating the external browser, you must copy the script tag into that web page. Requires more setup than the internal browser but gives you the freedom to use any browser.
 
 Note that for Browser options, compiled ClojureScript cannot be compiled with `:advanced` `:optimizations` mode.
 
 ## ClojureScript Workflows
+
+Starting with 0.2.0, when you eval a cljs file, LT automatically chooses an appropriate cljs client for you based on the behavior `:lt.plugins.clojure/set-default-cljs-client`.
+For ClojureScript projects, the `ClojureScript Browser` client opens an internal browser and attempts to find a valid url to connect to using possible paths from behavior `:lt.plugins.clojure/set-cljs-browser-paths`.
+This means that before your first eval, your cljs assets _must_ already be compiled e.g. `lein cljsbuild once`. Make sure the namespace you're evaling is included in your compiled assets. For
+example, if you're in a test namespace, your client browser _must_ be connected to an html file that includes test namespaces. In other words a test build of compiled assets must exist e.g. `lein cljsbuild once test` and an associated html file that sources in that compiled js.
+For LightTable plugins, the `Light Table UI` client is started and eval should just work.
 
 For ClojureScript projects:
 

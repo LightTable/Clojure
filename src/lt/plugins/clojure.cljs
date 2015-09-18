@@ -14,6 +14,7 @@
             [lt.objs.connector :as connector]
             [lt.objs.popup :as popup]
             [lt.objs.platform :as platform]
+            [lt.objs.tabs :as tabs]
             [lt.plugins.auto-complete :as auto-complete]
             [lt.objs.statusbar :as status]
             [lt.objs.proc :as proc]
@@ -25,6 +26,7 @@
             [lt.util.load :as load]
             [lt.util.cljs :refer [->dottedkw str-contains?]]
             [clojure.string :as string]
+            [cljs.reader :as reader]
             [lt.objs.command :as cmd]
             [lt.objs.plugins :as plugins])
   (:require-macros [lt.macros :refer [behavior defui]]))
@@ -179,6 +181,31 @@
 (def mime->type {"text/x-clojure" "clj"
                  "text/x-clojurescript" "cljs"})
 
+(def default-cljs-client
+  "Default cljs client to invoke when a cljs file is first evaled. Takes any valid client or
+  :auto which automatically sets 'Light Table UI' or 'ClojureScript Browser' based on whether
+  project is LightTable related or not."
+  nil)
+
+(behavior ::set-default-cljs-client
+          :triggers #{:object.instant}
+          :desc "Clojure: Set default ClojureScript client to use when first evaled. Disable with nil"
+          :type :user
+          :params [{:label "client-name"
+                    :type :list
+                    :items ["ClojureScript Browser" "Light Table UI" "Browser" "Browser (External)"]}]
+          :reaction (fn [this client-name]
+                      (set! default-cljs-client client-name)))
+
+(defn lighttable-ui-project?
+  "Determine if path is part of a project that evals to LightTable's process
+  e.g. LightTable plugin or LightTable itself"
+  [path]
+  (or (files/walk-up-find path "plugin.edn")
+      (files/walk-up-find path "plugin.json")
+      (when-let [project-file (files/walk-up-find path "project.clj")]
+        (= 'lighttable (second (reader/read-string (:content (files/open-sync project-file))))))))
+
 (behavior ::eval!
           :triggers #{:eval!}
           :reaction (fn [this event]
@@ -189,7 +216,15 @@
                         (clients/send (eval/get-client! {:command command
                                                          :info info
                                                          :origin origin
-                                                         :create try-connect})
+                                                         :create (fn [arg]
+                                                                   (when (contains? (set (:tags info)) :editor.cljs)
+                                                                     (let [client (if (= :auto default-cljs-client)
+                                                                                    (if (lighttable-ui-project? (:path info))
+                                                                                      "Light Table UI" "ClojureScript Browser")
+                                                                                    default-cljs-client)]
+                                                                       (when-let [connect-fn (-> @scl/clients :connectors (get client) :connect)]
+                                                                         (connect-fn))))
+                                                                   (try-connect arg))})
                                       command info :only origin))))
 
 (behavior ::build!
@@ -869,6 +904,41 @@
                 :tags #{:clojure.lang})
 
 (def clj-lang (object/create ::langs.clj))
+
+(def cljs-browser-paths
+  "Relative paths to search for when connecting to a Clojurescript Browser."
+  [])
+
+(behavior ::set-cljs-browser-paths
+          :triggers #{:object.instant}
+          :desc "Clojure: Set relative paths or urls to check for and use in ClojureScript Browser"
+          :type :user
+          :params [{:label "paths"}]
+          :reaction (fn [this paths]
+                      (set! cljs-browser-paths paths)))
+
+(defn find-cljs-browser-url
+  "Searches cljs-browser-paths for first url or relative path to exist and returns it."
+  [ed]
+  (let [project-dir (files/parent (files/walk-up-find (get-in @ed [:info :path]) "project.clj"))]
+    (some #(if (re-find #"^https?://" %)
+             %
+             (when (files/exists? (files/join project-dir %))
+               (str "file://" (files/join project-dir %))))
+          cljs-browser-paths)))
+
+(scl/add-connector {:name "ClojureScript Browser"
+                    :desc "Open a browser tab to eval ClojureScript"
+                    :connect (fn []
+                               (let [ed (pool/last-active)
+                                     default-url (find-cljs-browser-url ed)]
+                                 (cmd/exec! :add-browser-tab default-url)
+                                 (if default-url
+                                   (tabs/active! ed)
+                                   ;; Need timeout for message to show up after connection message
+                                   (js/setTimeout (fn [] (notifos/set-msg! "No file or url found for cljs connection. Enter a valid one in the browser"
+                                                                           {:class "error"}))
+                                                  10000))))})
 
 (cmd/command {:command :client.refresh-connection
               :desc "Client: Refresh client connection"
