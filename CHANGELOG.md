@@ -1,5 +1,14 @@
 #Changes
 
+## 0.2.0
+
+* ADDED: cljc eval support Clojure 1.7
+* ADDED: cljs support eval for clojurescript 1.7.x
+* Deprecating support for clojure eval from >= 1.5.1 to < 1.7.0. No support in two months
+* lein-light-nrepl: Has breaking cljs compiler changes and is only compatible with clojure >= 1.7
+  projects
+* ADDED: Tests for runner
+
 ## 0.1.3
 
 * Remove fs and cheshire dependencies
