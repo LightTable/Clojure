@@ -26,6 +26,7 @@
             [lt.util.load :as load]
             [lt.util.cljs :refer [->dottedkw str-contains?]]
             [clojure.string :as string]
+            [cljs.reader :as reader]
             [lt.objs.command :as cmd]
             [lt.objs.plugins :as plugins])
   (:require-macros [lt.macros :refer [behavior defui]]))
@@ -180,7 +181,29 @@
 (def mime->type {"text/x-clojure" "clj"
                  "text/x-clojurescript" "cljs"})
 
-(def default-cljs-client "ClojureScript Browser")
+(def default-cljs-client
+  "Default cljs client to invoke when a cljs file is first evaled. Default is to automatically
+  set 'Light Table UI' or 'ClojureScript Browser' based on whether project is LightTable related or not."
+  :auto)
+
+(behavior ::set-default-cljs-client
+          :triggers #{:object.instant}
+          :desc "Clojure: Set default ClojureScript client to use when first evaled. Disable with nil"
+          :type :user
+          :params [{:label "client-name"
+                    :type :list
+                    :items ["ClojureScript Browser" "Light Table UI" "Browser" "Browser (External)"]}]
+          :reaction (fn [this client-name]
+                      (set! default-cljs-client client-name)))
+
+(defn lighttable-ui-project?
+  "Determine if path is part of a project that evals to LightTable's process
+  e.g. LightTable plugin or LightTable itself"
+  [path]
+  (or (files/walk-up-find path "plugin.edn")
+      (files/walk-up-find path "plugin.json")
+      (when-let [project-file (files/walk-up-find path "project.clj")]
+        (= 'lighttable (second (reader/read-string (:content (files/open-sync project-file))))))))
 
 (behavior ::eval!
           :triggers #{:eval!}
@@ -194,7 +217,12 @@
                                                          :origin origin
                                                          :create (fn [arg]
                                                                    (when (contains? (set (:tags info)) :editor.cljs)
-                                                                     ((-> @scl/clients :connectors (get default-cljs-client) :connect)))
+                                                                     (let [client (if (= :auto default-cljs-client)
+                                                                                    (if (lighttable-ui-project? (:path info))
+                                                                                      "Light Table UI" "ClojureScript Browser")
+                                                                                    default-cljs-client)]
+                                                                       (when-let [connect-fn (-> @scl/clients :connectors (get client) :connect)]
+                                                                         (connect-fn))))
                                                                    (try-connect arg))})
                                       command info :only origin))))
 
