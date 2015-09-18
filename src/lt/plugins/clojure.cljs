@@ -182,9 +182,10 @@
                  "text/x-clojurescript" "cljs"})
 
 (def default-cljs-client
-  "Default cljs client to invoke when a cljs file is first evaled. Default is to automatically
-  set 'Light Table UI' or 'ClojureScript Browser' based on whether project is LightTable related or not."
-  :auto)
+  "Default cljs client to invoke when a cljs file is first evaled. Takes any valid client or
+  :auto which automatically sets 'Light Table UI' or 'ClojureScript Browser' based on whether
+  project is LightTable related or not."
+  nil)
 
 (behavior ::set-default-cljs-client
           :triggers #{:object.instant}
@@ -904,26 +905,40 @@
 
 (def clj-lang (object/create ::langs.clj))
 
-(def browser-paths
-  "Relative paths to search for when connecting to a clojurescript browser."
-  ["index.html" "resources/public/index.html" "public/index.html" "dev-resources/public/index.html"])
+(def cljs-browser-paths
+  "Relative paths to search for when connecting to a Clojurescript Browser."
+  [])
 
-(defn find-default-html-file
-  "Searches browser-paths for first relative path to exist and returns it."
+(behavior ::set-cljs-browser-paths
+          :triggers #{:object.instant}
+          :desc "Clojure: Set paths/urls to check for and use in ClojureScript Browser"
+          :type :user
+          :params [{:label "paths"}]
+          :reaction (fn [this paths]
+                      (set! cljs-browser-paths paths)))
+
+(defn find-cljs-browser-url
+  "Searches cljs-browser-paths for first url or relative path to exist and returns it."
   [ed]
   (let [project-dir (files/parent (files/walk-up-find (get-in @ed [:info :path]) "project.clj"))]
-    (some #(when (files/exists? (files/join project-dir %))
-             (str "file://" (files/join project-dir %)))
-          browser-paths)))
+    (some #(if (re-find #"^https?://" %)
+             %
+             (when (files/exists? (files/join project-dir %))
+               (str "file://" (files/join project-dir %))))
+          cljs-browser-paths)))
 
 (scl/add-connector {:name "ClojureScript Browser"
                     :desc "Open a browser tab to eval ClojureScript"
                     :connect (fn []
                                (let [ed (pool/last-active)
-                                     default-file (find-default-html-file ed)]
-                                 (cmd/exec! :add-browser-tab default-file)
-                                 (when default-file
-                                   (tabs/active! ed))))})
+                                     default-url (find-cljs-browser-url ed)]
+                                 (cmd/exec! :add-browser-tab default-url)
+                                 (if default-url
+                                   (tabs/active! ed)
+                                   ;; Need timeout for message to show up after connection message
+                                   (js/setTimeout (fn [] (notifos/set-msg! "No file or url found for cljs connection. Enter a valid one in the browser"
+                                                                           {:class "error"}))
+                                                  10000))))})
 
 (cmd/command {:command :client.refresh-connection
               :desc "Client: Refresh client connection"

@@ -1,5 +1,7 @@
 [
  [:app :lt.objs.plugins/load-js ["codemirror/clojure-mode.js" "clojure_compiled.js"]]
+ [:app :lt.plugins.clojure/set-default-cljs-client :auto]
+ [:app :lt.plugins.clojure/set-cljs-browser-paths ["index.html" "resources/public/index.html" "public/index.html" "dev-resources/public/index.html"]]
 
  [:clients :lt.plugins.clojure/handle-cancellation]
 
