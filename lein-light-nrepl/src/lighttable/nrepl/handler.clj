@@ -11,8 +11,6 @@
             [lighttable.nrepl.cljs :as cljs]
             [lighttable.nrepl.doc :as doc]
             lighttable.nrepl.auto-complete
-            [clj-stacktrace.repl :as stack :refer [pst+]]
-            [fs.core :as fs]
             [clojure.repl :as repl]))
 
 (defn with-lt-data [msg]

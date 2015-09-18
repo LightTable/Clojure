@@ -95,16 +95,24 @@
       (or (clients/by-name local-name)
           (run-local-server (clients/client! :nrepl.client))))))
 
-(behavior ::on-eval
+(behavior ::on-eval.clj
           :triggers #{:eval}
           :reaction (fn [editor]
                       (object/raise clj-lang :eval! {:origin editor
                                                      :info (assoc (@editor :info)
                                                              :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                                             :code (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
-                                                                                                           cljs-watch
-                                                                                                           clj-watch)))})
-                      ))
+                                                             :code (watches/watched-range editor nil nil clj-watch))})))
+(behavior ::on-eval.cljs
+          :triggers #{:eval}
+          :reaction (fn [editor]
+                      (object/raise clj-lang :eval! {:origin editor
+                                                     :info (assoc (@editor :info)
+                                                             :print-length (object/raise-reduce editor :clojure.print-length+ nil)
+                                                             ;; COMPILED temporarily enabled to turn off goog.provide ns errors
+                                                             :code (str
+                                                                    "(set! js/COMPILED-temp js/COMPILED) (set! js/COMPILED true) "
+                                                                    (watches/watched-range editor nil nil cljs-watch)
+                                                                    "(set! js/COMPILED js/COMPILED-temp)"))})))
 
 (behavior ::on-eval.one
           :triggers #{:eval.one}
@@ -459,16 +467,6 @@
           :reaction (fn [this path]
                       (object/merge! clj-lang {:java-exe path})))
 
-(behavior ::require-jar
-          :triggers #{:connect}
-          :reaction (fn [this path]
-                      (let [code (pr-str `(pomegranate/add-classpath ~path))]
-                        (object/raise this :send! {:cb (object/->id this)
-                                                   :command :editor.eval.clj
-                                                   :data {:code code
-                                                          :ns "user"
-                                                          :meta {:result-type :dependencies}}}))))
-
 ;;****************************************************
 ;; Connectors
 ;;****************************************************
@@ -480,7 +478,7 @@
 
 
 (scl/add-connector {:name "Clojure"
-                    :desc "Select a project.clj to connect to for either Clojure or ClojureScript."
+                    :desc "Select a project.clj to connect to."
                     :connect (fn []
                                (dialogs/file clj-lang :connect))})
 
@@ -898,3 +896,9 @@
                                  (cmd/exec! :add-browser-tab default-file)
                                  (when default-file
                                    (tabs/active! ed))))})
+
+(cmd/command {:command :client.refresh-connection
+              :desc "Client: Refresh client connection"
+              :exec (fn []
+                      (when-let [client (-> (pool/last-active) deref :client :exec)]
+                        (object/raise client :client.refresh!)))})

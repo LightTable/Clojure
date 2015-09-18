@@ -11,7 +11,7 @@
             [lt.plugins.watches :as watches]
             [lt.objs.tabs :as tabs]
             [lt.util.dom :refer [prevent]]
-            [lt.objs.sidebar.command :as cmd]
+            [lt.objs.command :as cmd]
             [crate.binding :refer [bound subatom]]
             [crate.core :as crate]
             [cljs.reader :as reader])
@@ -154,7 +154,7 @@
 (defn update-res [this results]
   (let [main (-> @this :main)
         vs (-> results :vals reader/read-string)
-        repls (-> results :uses)
+        repls (-> results :uses distinct)
         out (:out results)
         instarepl-atoms (->> @main :widgets vals (filter (comp :instarepl deref)))
         non-instarepl-widgets (->> @main :widgets (remove (comp :instarepl deref second)) (into {}))]
@@ -167,11 +167,13 @@
                                         (into non-instarepl-widgets
                                               (doall (for [r repls
                                                            :let [[type val] (->type|val r vs)
-                                                                 line (-> r :cur first dec)]]
+                                                                 line (-> r :cur first dec)
+                                                                 ch (-> r :cur second)
+                                                                 widget (inline main val {:type type
+                                                                          :line line})]]
                                                        (vector
-                                                        [type line]
-                                                        (inline main val {:type type
-                                                                          :line line})))))})))))
+                                                        [type line ch]
+                                                        widget))))})))))
 
 (behavior ::start-content
           :triggers #{:start-content+}

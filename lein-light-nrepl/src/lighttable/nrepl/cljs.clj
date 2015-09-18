@@ -1,14 +1,14 @@
 (ns lighttable.nrepl.cljs
-  (:require [clj-stacktrace.repl :as stack]
-            [clojure.pprint :refer [pprint]]
+  (:require [clojure.pprint :refer [pprint]]
             [clojure.test :as test]
             [clojure.string :as string]
-            [fs.core :as fs]
+            [lighttable.nrepl.fs :as fs]
             [lighttable.nrepl.eval :as eval]
             [lighttable.nrepl.core :as core]
             [lighttable.nrepl.exception :as exception]
             [cljs.compiler :as comp]
             [cljs.analyzer :as cljs]
+            [cljs.closure :as cljsc]
             [cljs.source-map :as sm]
             [cljs.env :as cljs-env :refer [with-compiler-env]]
             [clojure.test :as test]
@@ -19,8 +19,8 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :refer [interruptible-eval *msg*]]
             [clojure.tools.nrepl.misc :refer [response-for returning]]
-            [ibdknox.tools.reader :as reader]
-            [ibdknox.tools.reader.reader-types :as rt])
+            [clojure.tools.reader :as reader]
+            [clojure.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
 (def js-dependency-index
@@ -73,8 +73,12 @@
              g' (reduce #(update-in % [n] without %2) g m)]
          (recur g' (conj l n) (union s' (intersection (no-incoming g') m)))))))
 
+(let [ups-deps (cljsc/get-upstream-deps)
+      opts {:ups-libs (:libs ups-deps)
+            :ups-foreign-libs (:foreign-libs ups-deps)}]
+  (def compiler-env
+    (cljs-env/default-compiler-env opts)))
 
-(def compiler-env (cljs-env/default-compiler-env))
 (def build-env (atom {}))
 
 (defn ns->cljs-file [s]
@@ -131,7 +135,8 @@
      (with-bindings bindings#
        (with-compiler-env compiler-env
          (cljs.compiler/with-core-cljs
-          ~@body)))))
+          nil
+          (fn [] ~@body))))))
 
 (defn with-forms [{:keys [file] :as cur}]
   (let [file (file|resource->file file)]
@@ -141,7 +146,7 @@
         (with-cljs-env cur
           (assoc cur
             :file file-loc
-            :forms (eval/lined-read (slurp file))
+            :forms (eval/lined-read (slurp file) :cljs)
             :mtime mtime))))))
 
 (defn analyze [env form]
@@ -438,9 +443,10 @@
     (with-compiler-env compiler-env
       (binding [cljs/*cljs-ns* 'cljs.user]
         (comp/with-core-cljs
-         (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
-         (when (and path (fs/exists? path))
-           (cljs/analyze-file (str "file://" path))))))))
+          nil
+          (fn [] (cljs/analyze {:context :expr :ns {} :locals {}} (list 'ns ns))
+                 (when (and path (fs/exists? path))
+                   (cljs/analyze-file (str "file://" path)))))))))
 
 (defmethod core/handle "editor.eval.cljs" [{:keys [ns path code pos meta transport session] :as msg}]
     (let [ns (str ns)
@@ -457,7 +463,7 @@
   (try
       (with-bindings bindings
         (let [code (eval/prep-code msg)
-              forms (eval/lined-read code)
+              forms (eval/lined-read code :cljs)
               env {:context :expr :file path :locals {}}
               forms (if-not pos
                       forms
@@ -466,12 +472,14 @@
             (core/respond msg :editor.eval.cljs.location (clojure.core/meta (first forms))))
           (with-compiler-env compiler-env
             (comp/with-core-cljs
-             (if-not (first forms)
-               (core/respond msg :editor.eval.cljs.no-op {})
-               (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
-                                                                           (eval-cljs env f)))
-                                                         :ns cljs/*cljs-ns*
-                                                         :meta (or meta {})}))))))
+              nil
+              (fn []
+                (if-not (first forms)
+                  (core/respond msg :editor.eval.cljs.no-op {})
+                  (core/respond msg :editor.eval.cljs.code {:results (doall (for [f forms]
+                                                                              (eval-cljs env f)))
+                                                            :ns cljs/*cljs-ns*
+                                                            :meta (or meta {})})))))))
    (catch Exception e
       (let [ex (ex-data e)]
         (core/respond msg :editor.eval.cljs.exception {:stack (exception/clean-trace e)

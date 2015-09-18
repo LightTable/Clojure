@@ -1,6 +1,5 @@
 (ns lighttable.nrepl.eval
-  (:require [clj-stacktrace.repl :as stack]
-            [clojure.pprint :refer [pprint]]
+  (:require [clojure.pprint :refer [pprint]]
             [clojure.test :as test]
             [lighttable.nrepl.core :as core]
             [lighttable.nrepl.exception :as exception]
@@ -9,17 +8,20 @@
             [clojure.tools.nrepl.middleware :refer [set-descriptor!]]
             [clojure.tools.nrepl.middleware.interruptible-eval :refer [interruptible-eval *msg*]]
             [clojure.tools.nrepl.misc :refer [response-for returning]]
-            [ibdknox.tools.reader :as reader]
-            [ibdknox.tools.reader.reader-types :as rt])
+            [clojure.tools.reader :as reader]
+            [clojure.tools.reader.reader-types :as rt])
   (:import java.io.Writer))
 
-(defn try-read [rdr]
+(defn- try-read [rdr feature]
+  {:pre [(#{:clj :cljs} feature)]}
   (when rdr
-    (reader/read rdr false ::EOF)))
+    (reader/read {:read-cond :allow :features #{feature} :eof ::EOF} rdr)))
 
-(defn lined-read [string]
-  (let [rdr (rt/indexing-push-back-reader string)]
-    (take-while #(not= ::EOF %) (repeatedly #(try-read rdr)))))
+(defn lined-read
+  ([string] (lined-read string :clj))
+  ([string feature]
+   (let [rdr (rt/indexing-push-back-reader string)]
+     (take-while #(not= ::EOF %) (repeatedly #(try-read rdr feature))))))
 
 (defn find-form [forms pos]
   (let [cur-line (inc (:line pos))

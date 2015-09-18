@@ -2,7 +2,8 @@
  {:app [(:lt.objs.plugins/load-js ["codemirror/clojure-mode.js" "clojure_compiled.js"])]
 
   :files [(:lt.objs.files/file-types [{:name "Clojure" :exts [:clj] :mime "text/x-clojure" :tags [:editor.clj :editor.clojure]}
-                                      {:name "ClojureScript" :exts [:cljs] :mime "text/x-clojurescript" :tags [:editor.cljs :editor.clojurescript]}])]
+                                      {:name "ClojureScript" :exts [:cljs] :mime "text/x-clojurescript" :tags [:editor.cljs :editor.clojurescript]}
+                                      {:name "Clojure/ClojureScript" :exts [:cljc], :mime "text/x-clojure", :tags [:editor.clj :editor.clojure]}])]
 
   :clojure.lang [:lt.plugins.clojure/connect-local
                  :lt.plugins.clojure/eval!
@@ -25,8 +26,7 @@
                         :lt.plugins.clojure/eval-print-err
                         :lt.plugins.clojure/eval-print
                         :lt.plugins.clojure/clj-result
-                        :lt.plugins.clojure/clj-exception
-                        :lt.plugins.clojure/install-dependencies]
+                        :lt.plugins.clojure/clj-exception]
 
   :nrepl.client [:lt.plugins.clojure.nrepl/client.settings
                  :lt.plugins.clojure.nrepl/init-session
@@ -55,8 +55,12 @@
                       :lt.plugins.clojure/on-eval.custom]
 
   :editor.clj.eval [:lt.plugins.clojure/on-eval.one
-                    :lt.plugins.clojure/on-eval
+                    :lt.plugins.clojure/on-eval.clj
                     :lt.plugins.clojure/eval-location]
+
+  :editor.cljs.eval [:lt.plugins.clojure/on-eval.one
+                     :lt.plugins.clojure/on-eval.cljs
+                     :lt.plugins.clojure/eval-location]
 
   :editor.clj [(:lt.object/add-tag :editor.clj.common)
                (:lt.object/add-tag :editor.clj.eval)
@@ -76,7 +80,7 @@
                :lt.plugins.clojure/print-clj-doc]
 
   :editor.cljs [(:lt.object/add-tag :editor.clj.common)
-                (:lt.object/add-tag :editor.clj.eval)
+                (:lt.object/add-tag :editor.cljs.eval)
                 :lt.plugins.clojure/eval-print
                 :lt.plugins.clojure/eval-print-err
                 :lt.plugins.clojure/exec.cljs!
@@ -121,12 +125,4 @@
               :lt.plugins.clojure.instarepl/no-op
               :lt.plugins.clojure.instarepl/cleanup-on-destroy
               :lt.plugins.clojure/eval-print-err
-              :lt.plugins.clojure/eval-print]
-
- :inline.result-group [:lt.plugins.clojure.instarepl/clear-mark
-                       :lt.plugins.clojure.instarepl/changed
-                       :lt.plugins.clojure.instarepl/soft-clear
-                       :lt.plugins.clojure.instarepl/expand-on-click
-                       :lt.plugins.clojure.instarepl/move-mark
-                       :lt.plugins.clojure.instarepl/shrink-on-double-click]
- }}
+              :lt.plugins.clojure/eval-print]}}
