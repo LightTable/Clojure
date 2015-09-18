@@ -911,7 +911,7 @@
 
 (behavior ::set-cljs-browser-paths
           :triggers #{:object.instant}
-          :desc "Clojure: Set paths/urls to check for and use in ClojureScript Browser"
+          :desc "Clojure: Set relative paths or urls to check for and use in ClojureScript Browser"
           :type :user
           :params [{:label "paths"}]
           :reaction (fn [this paths]
