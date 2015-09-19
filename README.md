@@ -1,6 +1,6 @@
 ##Clojure for Light Table
 
-The official Clojure language plugin for Light Table.
+The official Clojure(Script) language plugin for Light Table.
 
 ## Supported Clojure versions
 
@@ -74,6 +74,18 @@ For projects using Clojure >= 1.5.1 and < 1.7.0, `X.X.X` refers to `0.1.3`, an o
 For projects using Clojure >= 1.7.0, `X.X.X` refers to the latest version of `lein-light-nrepl`:
 
 [![Clojars Project](http://clojars.org/lein-light-nrepl/latest-version.svg)](http://clojars.org/lein-light-nrepl)
+
+## Connection Troubleshooting
+
+If your Clojure(Script) project fails to connect to LightTable, try these troubleshooting steps:
+
+* If you have uberjar'ed your project, try deleting target/ or `lein clean` and reconnecting. See [this example issue](https://github.com/LightTable/LightTable/issues/1880)
+* A Clojure connection [has the following dependencies](https://github.com/LightTable/Clojure/blob/8da0a05e998917d1d67d58c7bed9f95b6abad5c9/lein-light-nrepl/project.clj#L6-L13)
+  that can conflict with your project's dependencies. If your project.clj has conflicting dependencies, try upgrading them to at least the same version Light Table has.
+* Leiningen has a couple of ways of adding dependencies outside of project.clj. If you have a `~/.lein/profiles.clj` or a local `profiles.clj` try moving it out e.g. `mv ~/.lein/profiles.clj{,.bak}`. Also move out any local [checkouts/](https://github.com/technomancy/leiningen/blob/d40fdd4da363a21e9e2e469fd4418697e61c06b3/doc/TUTORIAL.md#checkout-dependencies).
+* It's possible a dependency of a dependency can conflict. To see these conflicts run `lein deps :tree` in your project's root directory.
+  Try resolving conflicts as suggested by output that starts with `Consider using these exclusions:`.
+* If still unable to connect, make sure you've moved out Leiningen's dependency-altering files and file an issue with the full failure message, your project's project.clj and other standard [bug information](https://github.com/LightTable/LightTable/blob/master/CONTRIBUTING.md#bugs).
 
 ## License
 
