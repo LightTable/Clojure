@@ -65,8 +65,7 @@ has the following `:dependencies` and `:repl-options`:
 
 ```clojure
 (defproject lttest "0.1.0-SNAPSHOT"
-  :description "FIXME: write description"
-  :dependencies [[org.clojure/clojure "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.7.0"]
                  [lein-light-nrepl "X.X.X"]]
   :repl-options {:nrepl-middleware [lighttable.nrepl.handler/lighttable-ops]})
 ```
