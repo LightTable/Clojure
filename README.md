@@ -10,6 +10,10 @@ This plugin requires projects Clojure 1.5.1 and higher. Starting with 0.2.0 this
 
 This plugin works for projects on recent versions of ClojureScript e.g. 1.7.X. For projects with ClojureScript versions 0.0-2341 and higher, Clojure 1.7.0 is required.
 
+## Supported Java versions
+
+This plugin requires Java 8 and higher. Java 7 has not been [officially supported since April 2015](http://www.oracle.com/technetwork/java/javase/downloads/eol-135779.html). While most plugin functionality works with Java 7, this may change as the plugin will target supported versions.
+
 ## Cljc eval
 
 By default, \*.cljc files are identified as Clojure files. Thus when you eval, it will eval as a

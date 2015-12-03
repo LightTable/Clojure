@@ -885,8 +885,8 @@
                                                   :body "Clojure evaluation requires the JDK to be installed."
                                                   :buttons [{:label "Download the JDK"
                                                              :action (fn []
-                                                                       (platform/open "http://www.oracle.com/technetwork/java/javase/downloads/jdk7-downloads-1880260.html"))}
-                                                            {:label "ok"}]}) ;;TODO: alert this
+                                                                       (platform/open "http://www.oracle.com/technetwork/java/javase/downloads/jdk8-downloads-2133151.html"))}
+                                                            {:label "ok"}]})
      (not ltjar) (do (deploy/deploy) (run-jar obj))
      (not project-path) (console/error (str "Couldn't find a project.clj in any parent of " path))
      :else (run-jar obj))
