@@ -447,13 +447,6 @@
                         (object/raise obj :editor.exception stack loc))
                       ))
 
-(behavior ::eval-location
-          :triggers #{:editor.eval.clj.location
-                      :editor.eval.cljs.location}
-          :reaction (fn [obj loc]
-                      ;(println "LOCATION: " loc)
-                      ))
-
 (behavior ::eval-print
           :triggers #{:editor.eval.clj.print}
           :reaction (fn [this str]
