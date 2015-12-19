@@ -37,31 +37,6 @@
 (def jar-path (files/join plugins/*plugin-dir* "runner/target/lein-light-standalone.jar"))
 
 ;;****************************************************
-;; Parser
-;; REVIEW: should we use this?
-;;****************************************************
-
-(defn binary-search [arr loc]
-  (let [line (:line loc)]
-    (loop [f 0
-           l (dec (.-length arr))]
-      (let [i (int (/ (+ f l) 2))
-            cur (aget arr i)]
-        (cond
-         (and (>= (.-line cur) line)
-              (<= (.-endLine cur) line)) {:line (.-line cur)
-                                          :end-line (.-endLine cur)
-                                          :col (.-col cur)
-                                          :end-col (.-endCol cur)}
-         (= f i l) nil
-         (> line (.-endLine cur)) (recur (inc i) l)
-         :else (recur f i))))))
-
-(defn find-form [str loc]
-  (let [parsed (.parse parser str)]
-    (binary-search parsed loc)))
-
-;;****************************************************
 ;; highlighting
 ;;****************************************************
 
@@ -814,11 +789,6 @@
 
 (defn wrap-quotes [s]
   (str "\"" s "\""))
-
-(defn escape-spaces [s]
-  (if (= files/separator "\\")
-    (wrap-quotes s)
-    (string/replace s #" " "\\ ")))
 
 (defn windows-escape [s]
   (if (and (str-contains? s " ") (platform/win?))
