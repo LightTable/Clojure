@@ -825,17 +825,9 @@
   (assoc obj :ltjar (files/exists? jar-path)))
 
 (defn find-project [obj]
-  (let [p (:path obj)
-        roots (files/get-roots)]
-    (loop [cur p
-           prev ""]
-      (if (or (empty? cur)
-              (roots cur)
-              (= cur prev))
-        (assoc obj :project-path nil)
-        (if (files/exists? (files/join cur "project.clj"))
-          (assoc obj :project-path cur)
-          (recur (files/parent cur) cur))))))
+  (if-let [path (files/walk-up-find (:path obj) "project.clj")]
+    (assoc obj :project-path (files/parent path))
+    (assoc obj :project-path nil)))
 
 (defn notify [obj]
   (let [{:keys [java project-path path ltjar]} obj]
