@@ -36,7 +36,6 @@
 
  [:editor.clj.eval :lt.plugins.clojure/on-eval.one]
  [:editor.clj.eval :lt.plugins.clojure/on-eval.clj]
- [:editor.clj.eval :lt.plugins.clojure/eval-location]
 
  [:editor.clj.hints :lt.plugins.clojure/clj-result]
  [:editor.clj.hints :lt.plugins.clojure/trigger-update-hints]
@@ -85,7 +84,6 @@
 
  [:editor.cljs.eval :lt.plugins.clojure/on-eval.one]
  [:editor.cljs.eval :lt.plugins.clojure/on-eval.cljs]
- [:editor.cljs.eval :lt.plugins.clojure/eval-location]
 
  [:files :lt.objs.files/file-types [{:exts [:clj], :mime "text/x-clojure", :tags [:editor.clj :editor.clojure], :name "Clojure"}
                                     {:exts [:cljs], :mime "text/x-clojurescript", :tags [:editor.cljs :editor.clojurescript], :name "ClojureScript"}

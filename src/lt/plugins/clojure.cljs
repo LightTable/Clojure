@@ -3,20 +3,16 @@
             [lt.objs.clients :as clients]
             [lt.objs.files :as files]
             [lt.objs.context :as ctx]
-            [lt.objs.app :as app]
-            [lt.objs.clients.tcp :as tcp]
             [lt.objs.sidebar.clients :as scl]
             [lt.objs.dialogs :as dialogs]
             [lt.objs.deploy :as deploy]
             [lt.objs.console :as console]
             [lt.objs.editor :as ed]
             [lt.objs.editor.pool :as pool]
-            [lt.objs.connector :as connector]
             [lt.objs.popup :as popup]
             [lt.objs.platform :as platform]
             [lt.objs.tabs :as tabs]
             [lt.plugins.auto-complete :as auto-complete]
-            [lt.objs.statusbar :as status]
             [lt.objs.proc :as proc]
             [lt.objs.eval :as eval]
             [lt.objs.notifos :as notifos]
@@ -35,31 +31,6 @@
 (def cur-path (.pwd shell))
 (def local-project-clj (files/join plugins/*plugin-dir* "runner/resources/project.clj"))
 (def jar-path (files/join plugins/*plugin-dir* "runner/target/lein-light-standalone.jar"))
-
-;;****************************************************
-;; Parser
-;; REVIEW: should we use this?
-;;****************************************************
-
-(defn binary-search [arr loc]
-  (let [line (:line loc)]
-    (loop [f 0
-           l (dec (.-length arr))]
-      (let [i (int (/ (+ f l) 2))
-            cur (aget arr i)]
-        (cond
-         (and (>= (.-line cur) line)
-              (<= (.-endLine cur) line)) {:line (.-line cur)
-                                          :end-line (.-endLine cur)
-                                          :col (.-col cur)
-                                          :end-col (.-endCol cur)}
-         (= f i l) nil
-         (> line (.-endLine cur)) (recur (inc i) l)
-         :else (recur f i))))))
-
-(defn find-form [str loc]
-  (let [parsed (.parse parser str)]
-    (binary-search parsed loc)))
 
 ;;****************************************************
 ;; highlighting
@@ -447,13 +418,6 @@
                         (object/raise obj :editor.exception stack loc))
                       ))
 
-(behavior ::eval-location
-          :triggers #{:editor.eval.clj.location
-                      :editor.eval.cljs.location}
-          :reaction (fn [obj loc]
-                      ;(println "LOCATION: " loc)
-                      ))
-
 (behavior ::eval-print
           :triggers #{:editor.eval.clj.print}
           :reaction (fn [this str]
@@ -822,11 +786,6 @@
 (defn wrap-quotes [s]
   (str "\"" s "\""))
 
-(defn escape-spaces [s]
-  (if (= files/separator "\\")
-    (wrap-quotes s)
-    (string/replace s #" " "\\ ")))
-
 (defn windows-escape [s]
   (if (and (str-contains? s " ") (platform/win?))
     (wrap-quotes s)
@@ -866,17 +825,9 @@
   (assoc obj :ltjar (files/exists? jar-path)))
 
 (defn find-project [obj]
-  (let [p (:path obj)
-        roots (files/get-roots)]
-    (loop [cur p
-           prev ""]
-      (if (or (empty? cur)
-              (roots cur)
-              (= cur prev))
-        (assoc obj :project-path nil)
-        (if (files/exists? (files/join cur "project.clj"))
-          (assoc obj :project-path cur)
-          (recur (files/parent cur) cur))))))
+  (if-let [path (files/walk-up-find (:path obj) "project.clj")]
+    (assoc obj :project-path (files/parent path))
+    (assoc obj :project-path nil)))
 
 (defn notify [obj]
   (let [{:keys [java project-path path ltjar]} obj]
