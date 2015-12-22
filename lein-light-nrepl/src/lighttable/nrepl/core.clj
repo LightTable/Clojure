@@ -26,7 +26,6 @@
                                    :editor.cljs.hints
                                    :docs.clj.search
                                    :docs.cljs.search
-                                   :editor.eval.clj.sonar
                                    :editor.eval.clj.cancel
                                    :editor.eval.cljs
                                    :cljs.compile]}))
