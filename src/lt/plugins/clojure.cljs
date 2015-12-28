@@ -73,7 +73,7 @@
                       (object/raise clj-lang :eval! {:origin editor
                                                      :info (assoc (@editor :info)
                                                              :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                                             :code (watches/watched-range editor nil nil clj-watch))})))
+                                                             :code (watches/watched-range editor nil nil nil))})))
 (behavior ::on-eval.cljs
           :triggers #{:eval}
           :reaction (fn [editor]
@@ -83,15 +83,13 @@
                                                              ;; COMPILED temporarily enabled to turn off goog.provide ns errors
                                                              :code (str
                                                                     "(set! js/COMPILED-temp js/COMPILED) (set! js/COMPILED true) "
-                                                                    (watches/watched-range editor nil nil cljs-watch)
+                                                                    (watches/watched-range editor nil nil nil)
                                                                     "(set! js/COMPILED js/COMPILED-temp)"))})))
 
 (behavior ::on-eval.one
           :triggers #{:eval.one}
           :reaction (fn [editor]
-                      (let [code (watches/watched-range editor nil nil (if (object/has-tag? editor :editor.cljs)
-                                                                         cljs-watch
-                                                                         clj-watch))
+                      (let [code (watches/watched-range editor nil nil nil)
                             pos (ed/->cursor editor)
                             info (:info @editor)
                             info (if (ed/selection? editor)
@@ -589,7 +587,7 @@
                                    :loc (:loc token)
                                    :sym (:string token)
                                    :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                   :code (watches/watched-range editor nil nil clj-watch))]
+                                   :code (watches/watched-range editor nil nil nil))]
                         (when token
                           (clients/send (eval/get-client! {:command command
                                                            :info info
@@ -628,7 +626,7 @@
                                    :loc (:loc token)
                                    :sym (:string token)
                                    :print-length (object/raise-reduce editor :clojure.print-length+ nil)
-                                   :code (watches/watched-range editor nil nil cljs-watch))]
+                                   :code (watches/watched-range editor nil nil nil))]
                         (when token
                           (clients/send (eval/get-client! {:command command
                                                            :info info
