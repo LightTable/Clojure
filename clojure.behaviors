@@ -42,22 +42,6 @@
  [:editor.clj.hints :lt.plugins.clojure/finish-update-hints]
  [:editor.clj.hints :lt.plugins.clojure/use-local-hints]
 
- [:editor.clj.instarepl :lt.object/add-tag :editor.clj.common]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/on-eval-one]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/set-parent-title]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/on-eval-sonar]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/dirty-parent]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/eval-on-change]
- [:editor.clj.instarepl :lt.plugins.clojure.instarepl/close-parent]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-result.inline]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-result.statusbar]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-result.replace]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-watch-result]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-watch-src]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-watch-custom-src]
- [:editor.clj.instarepl :lt.plugins.clojure/clj-doc]
- [:editor.clj.instarepl :lt.plugins.clojure/print-clj-doc]
-
  [:editor.clj.jump-to-definition :lt.plugins.clojure/jump-to-definition-at-cursor]
  [:editor.clj.jump-to-definition :lt.plugins.clojure/start-jump-to-definition]
  [:editor.clj.jump-to-definition :lt.plugins.clojure/finish-jump-to-definition]
@@ -88,18 +72,6 @@
  [:files :lt.objs.files/file-types [{:exts [:clj], :mime "text/x-clojure", :tags [:editor.clj :editor.clojure], :name "Clojure"}
                                     {:exts [:cljs], :mime "text/x-clojurescript", :tags [:editor.cljs :editor.clojurescript], :name "ClojureScript"}
                                     {:exts [:cljc], :mime "text/x-clojure", :tags [:editor.clj :editor.clojure], :name "Clojure/ClojureScript"}]]
-
- [:instarepl :lt.plugins.clojure.instarepl/sonar-result]
- [:instarepl :lt.plugins.clojure.instarepl/clj-exception]
- [:instarepl :lt.plugins.clojure.instarepl/on-show-refresh-eds]
- [:instarepl :lt.plugins.clojure.instarepl/destroy-on-close]
- [:instarepl :lt.plugins.clojure.instarepl/reroute-watches]
- [:instarepl :lt.plugins.clojure.instarepl/live-toggle]
- [:instarepl :lt.plugins.clojure.instarepl/on-focus-focus-ed]
- [:instarepl :lt.plugins.clojure.instarepl/no-op]
- [:instarepl :lt.plugins.clojure.instarepl/cleanup-on-destroy]
- [:instarepl :lt.plugins.clojure/eval-print-err]
- [:instarepl :lt.plugins.clojure/eval-print]
 
  [:nrepl.client :lt.plugins.clojure.nrepl/client.settings]
  [:nrepl.client :lt.plugins.clojure.nrepl/init-session]

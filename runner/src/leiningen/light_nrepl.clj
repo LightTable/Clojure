@@ -42,7 +42,8 @@
                              "0.2.0"
                              ;; Deprecated/unmaintained lein-light-nrepl
                              "0.1.3")
-        profile {:dependencies [['lein-light-nrepl/lein-light-nrepl lein-light-version]]
+        profile {:dependencies [['lein-light-nrepl/lein-light-nrepl lein-light-version]
+                                ['lein-light-nrepl-instarepl "0.3.0"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                 :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]

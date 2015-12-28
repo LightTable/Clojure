@@ -18,18 +18,7 @@
 (def old-*err* *err*)
 (def my-settings (atom {:name "clj"
                         :dir (fs/absolute-path fs/cwd)
-                        :type "lein-light-nrepl"
-                        :commands [:editor.eval.clj
-                                   :editor.clj.doc
-                                   :editor.cljs.doc
-                                   :editor.clj.hints
-                                   :editor.cljs.hints
-                                   :docs.clj.search
-                                   :docs.cljs.search
-                                   :editor.eval.clj.sonar
-                                   :editor.eval.clj.cancel
-                                   :editor.eval.cljs
-                                   :cljs.compile]}))
+                        :type "lein-light-nrepl"}))
 
 (defmulti handle :op)
 
