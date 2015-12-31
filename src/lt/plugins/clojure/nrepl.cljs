@@ -178,4 +178,4 @@
 (defn send [client msg]
   (let [session (:session @client)
         msg (merge (when session {:session session}) msg)]
-    (send* client msg cb)))
+    (send* client msg)))
