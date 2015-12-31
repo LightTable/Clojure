@@ -1,5 +1,14 @@
 #Changes
 
+## 0.3.0
+
+* Split out instarepl into its own plugin - ClojureInstarepl.
+  standalone runner now loads lein-light-nrepl-instarepl
+* Remove unused requires, files and fns in plugin and lein-light-nrepl
+* Remove dependence on custom js->clj
+* Plugin now officially supports Java >= 8
+* No more support for deprecated clojure versions >= 1.5.1 to < 1.7.0
+
 ## 0.2.0
 
 * ADDED: cljc eval support Clojure 1.7
