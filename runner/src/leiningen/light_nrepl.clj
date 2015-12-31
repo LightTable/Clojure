@@ -39,11 +39,11 @@
                init)
         lein-light-version (if (maintained-clojure-version? clj-version)
                              ;; Maintained lein-light-nrepl
-                             "0.2.0"
+                             "0.3.0"
                              ;; Deprecated/unmaintained lein-light-nrepl
                              "0.1.3")
         profile {:dependencies [['lein-light-nrepl/lein-light-nrepl lein-light-version]
-                                ['lein-light-nrepl-instarepl "0.3.0"]]
+                                ['lein-light-nrepl-instarepl "0.3.1"]]
                  :repl-options {:nrepl-middleware ['lighttable.nrepl.handler/lighttable-ops]
                                 :init (with-meta init {:replace true})}}
         project (lp/merge-profiles project [profile])]
