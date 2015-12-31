@@ -97,12 +97,17 @@ Distributed under the MIT License, see license.md for the full text.
 
 ## For Committers
 
-* Project layout
-  * runner/: Contains uberjar to inject our nREPL middleware into a project and then start a repl
-  * lein-light-nrepl/: Contains nREPL middleware that needs to be deployed to Clojars when changed
-  * src/ and everything else: Normal LightTable plugin
-* When releasing a new plugin version and lein-light-nrepl has changed:
-  * Bump lein-light-nrepl and lein-light in runner/.
-  * Update the uberjar with `lein uberjar` in `runner` to produce `runner/target/lein-light-standalone.jar`.
-  * Release the new version of lein-light-nrepl to [clojars](https://clojars.org/lein-light-nrepl)
-* No process for upgrading `clojure-mode.js` until [this issue](https://github.com/LightTable/Clojure/issues/26) is addressed.
+Plugin consists of the following components:
+
+* `lein-light-nrepl/`: nREPL middleware that is released as a clojars library
+* `runner/`: Uberjar that kicks off a connection to a Clojure(Script) project
+* `build.sh`: Script that rebuilds uberjar with any changes made to lein-light-nrepl and runner. Any Clojure connections must be restarted for this change to take effect.
+* `codemirror/clojure-mode.js`: Forked version of CodeMirror's clojure mode.
+   * There is no process for upgrading `clojure-mode.js` until [this issue](https://github.com/LightTable/Clojure/issues/26) is addressed.
+* `src/`: Normal LightTable plugin
+
+When releasing a new plugin version and lein-light-nrepl has changed:
+
+* Bump lein-light-nrepl and lein-light in runner/.
+* Update the uberjar with `lein uberjar` in `runner` to produce `runner/target/lein-light-standalone.jar`.
+* Release the new version of lein-light-nrepl to [clojars](https://clojars.org/lein-light-nrepl)
