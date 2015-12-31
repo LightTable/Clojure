@@ -5,7 +5,7 @@
             [lt.objs.files :as files]
             [lt.objs.notifos :as notifos]
             [lt.util.js :refer [wait]]
-            [lt.util.cljs :refer [js->clj str-contains?]]
+            [lt.util.cljs :refer [str-contains?]]
             [lt.util.load :refer [node-module]]
             [cljs.reader :as reader])
   (:require-macros [lt.macros :refer [behavior]]))
