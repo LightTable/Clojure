@@ -1,4 +1,4 @@
-(defproject lein-light-nrepl "0.2.0"
+(defproject lein-light-nrepl "0.3.0"
   :description "nrepl client for Light Table clj and cljs eval."
   :url "https://github.com/LightTable/Clojure/tree/master/lein-light-nrepl"
   :license {:name "Eclipse Public License"
