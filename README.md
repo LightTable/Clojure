@@ -103,11 +103,10 @@ Plugin consists of the following components:
 * `runner/`: Uberjar that kicks off a connection to a Clojure(Script) project
 * `build.sh`: Script that rebuilds uberjar with any changes made to lein-light-nrepl and runner. Any Clojure connections must be restarted for this change to take effect.
 * `codemirror/clojure.js`: CodeMirror's clojure mode
-   * Current version is
-     https://github.com/codemirror/CodeMirror/blob/724a0d32820fd28d145a1b8dae12f7bb813f925c/mode/clojure/clojure.js
-   * Upgrade `clojure.js` with the following where `$VERSION` is a version tag or commit SHA:
+  * [Current version](https://github.com/codemirror/CodeMirror/blob/724a0d32820fd28d145a1b8dae12f7bb813f925c/mode/clojure/clojure.js)
+  * Upgrade `clojure.js` with the following where `$VERSION` is a version tag or commit SHA:
 
-     curl https://raw.githubusercontent.com/codemirror/CodeMirror/$VERSION/mode/clojure/clojure.js > codemirror/clojure.js
+    curl https://raw.githubusercontent.com/codemirror/CodeMirror/$VERSION/mode/clojure/clojure.js > codemirror/clojure.js
 * `src/`: Normal LightTable plugin
 
 When releasing a new plugin version and lein-light-nrepl has changed:
