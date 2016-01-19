@@ -1,5 +1,9 @@
 #Changes
 
+## 0.3.1
+
+* Use upstream Clojure mode. Fixes bugs with dosync indentation and variable styling
+
 ## 0.3.0
 
 * Split out instarepl into its own plugin - ClojureInstarepl.
