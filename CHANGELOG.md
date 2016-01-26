@@ -1,5 +1,9 @@
 #Changes
 
+## 0.3.2
+
+* Fix multiple project files not sharing one connection for Clojure >= 1.7
+
 ## 0.3.1
 
 * Use upstream Clojure mode. Fixes bugs with dosync indentation and variable styling
