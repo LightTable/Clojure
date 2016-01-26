@@ -1,4 +1,4 @@
-(defproject lein-light "0.3.0"
+(defproject lein-light "0.3.2"
   :description "Provide uberjar to start headless repl with LT middleware"
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
