@@ -390,8 +390,9 @@
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta 0)
                                  :start-line (dec (:line meta 1))}]
                         (notifos/set-msg! (:result res) {:class "error"})
-                        (object/raise obj :editor.exception (:stack res) loc))
-                      ))
+                        (if (:ex res)
+                          (object/raise obj :editor.exception (:stack res) loc)
+                          (object/raise obj :editor.exception (:result res) loc)))))
 
 (behavior ::cljs-exception
           :triggers #{:editor.eval.cljs.exception}
