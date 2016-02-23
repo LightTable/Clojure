@@ -20,6 +20,20 @@ By default, \*.cljc files are identified as Clojure files. Thus when you eval, i
 Clojure file. If you'd like to eval as a ClojureScript file, run the command `Editor: Set current
 editor syntax`, select `ClojureScript` and then eval.
 
+## Clojure(script) error messages
+Currently this plugin supports an experimental feature that allows to change the default exception behavior (showing the complete stacktrace) to an expandable version of the same. Some screenshots of the new behavior can be found [here](https://github.com/LightTable/Clojure/issues/77).
+To use the new behavior go to ```User behaviors``` and add the following lines :
+
+```Clojure
+; for Clojure
+[:editor.clj :-lt.plugins.clojure/clj-exception]
+[:editor.clj :lt.plugins.clojure.collapsible-exception/clj-expandable-exception]
+
+; for Clojurescript
+[:editor.cljs :-lt.plugins.clojure/cljs-exception]
+[:editor.cljs :lt.plugins.clojure.collapsible-exception/cljs-expandable-exception]
+```
+
 ## First ClojureScript Repl
 
 Welcome first time ClojureScript users! Please see [David Nolen's tutorial](https://github.com/swannodette/lt-cljs-tutorial) to get familiar with ClojureScript and comfortable with LightTable's repl. Note while doing that tutorial you were in a namespace. A namespace is necessary for a LightTable repl. Once you have finished the tutorial, create your own ClojureScript project with `lein new mies my-project` and eval there. If you want to add dependencies to your project, read the [below section](#clojurescript-eval) as that requires a different type of LightTable connection.
