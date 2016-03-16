@@ -97,4 +97,18 @@
 
  [:sidebar.docs.search :lt.plugins.clojure/clj-doc-search]
  [:sidebar.docs.search :lt.plugins.clojure/cljs-doc-search]
+
+ ; collapsible stacktrace
+ [:editor.clj.common :lt.plugins.clojure.collapsible-exception/expandable-exceptions]
+ ; new :collapsible.exception TAG
+ [:collapsible.exception :lt.objs.menu/menu!]
+ [:collapsible.exception :lt.objs.eval/ex-menu+]
+ [:collapsible.exception :lt.objs.eval/ex-clear]
+ [:collapsible.exception :lt.objs.eval/expand-on-click]
+ [:collapsible.exception :lt.objs.eval/shrink-on-double-click]
+ [:collapsible.exception :lt.objs.eval/destroy-on-cleared]
+ ;[:inline.exception :lt.objs.eval/copy-exception]
+ ;NOTE: currently this copies the complete stacktrace but what about just
+      ; copying the summary?
+ [:collapsible.exception :lt.objs.eval/copy-result]
 ]
