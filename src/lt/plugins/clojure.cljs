@@ -381,6 +381,11 @@
                           (object/raise handler ev {:result (:result result)
                                                     :meta meta})))))
 
+(defn strip-ansi
+  "Removes ANSI codes from a string, returning just the raw text."
+  [string]
+  (clojure.string/replace string #"\u001b\[.*?m" ""))
+
 (behavior ::clj-exception
           :triggers #{:editor.eval.clj.exception}
           :reaction (fn [obj res passed?]
@@ -390,7 +395,7 @@
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta 0)
                                  :start-line (dec (:line meta 1))}]
                         (notifos/set-msg! (:result res) {:class "error"})
-                        (object/raise obj :editor.exception (:stack res) loc))
+                        (object/raise obj :editor.exception (strip-ansi (:stack res)) loc))
                       ))
 
 (behavior ::cljs-exception
@@ -412,8 +417,8 @@
                                             (pr-str (:ex res)))))
                                       msg
                                       "Unknown error")]
-                        (notifos/set-msg! msg {:class "error"})
-                        (object/raise obj :editor.exception stack loc))
+                        (notifos/set-msg! (strip-ansi msg) {:class "error"})
+                        (object/raise obj :editor.exception (strip-ansi stack) loc))
                       ))
 
 (behavior ::eval-print
