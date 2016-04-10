@@ -145,7 +145,7 @@
                       (let [meta (:meta res)
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta)
                                  :start-line (dec (:line meta))}
-                            msg (or (:stack res) (truncate (:ex res)))
+                            msg (truncate (or (:stack res) (:ex res)))
                             stack (cond
                                     (:stack res)                           (:stack res)
                                     (and (:ex res) (.-stack (:ex res)))    (.-stack (:ex res))
