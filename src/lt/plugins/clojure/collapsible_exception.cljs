@@ -134,7 +134,7 @@
                       (let [meta (:meta res)
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta 0)
                                  :start-line (dec (:line meta 1))}]
-                        (notifos/set-msg! (:result res) {:class "error"})
+                        (notifos/set-msg! (truncate (:result res)) {:class "error"})
                         (object/raise obj :editor.exception.collapsible (:result res) (:stack res) loc))))
 
 (behavior ::cljs-expandable-exception
