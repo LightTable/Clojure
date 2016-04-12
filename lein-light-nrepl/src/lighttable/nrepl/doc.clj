@@ -55,17 +55,13 @@
         )))
 
 (defn find-doc [search]
-    (let [all-interns (vals (apply merge (map ns-interns (all-ns))))
+    (let [all-vars    (vals (apply merge (map ns-interns (all-ns))))
           with-dist  #(hash-map :dist (levenshtein search (str (:name %))) :meta %)
-          dist-metas  (into [] (comp (map meta) (map with-dist)) all-interns)
-          ms          (map :meta (sort-by :dist dist-metas))]
-      (for [m ms
-              :when (and (:doc m)
-                         (not (:private m))
-                         (or (str-contains? (:doc m) search)
-                             (str-contains? (str (:ns m)) search)
-                             (str-contains? (str (:name m)) search)))]
-               (format-result (clean-meta m)))))
+          dist-metas  (into [] (comp (map meta) (filter :doc) (remove :private)
+                                     (map clean-meta) (map format-result)
+                                     (map with-dist))
+                            all-vars)]
+      (map :meta (sort-by :dist dist-metas))))
 
 (def jar-temp-files
   "Maps jar-url paths to temp files"
