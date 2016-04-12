@@ -20,6 +20,9 @@
                          (conj crow dist)))]
     (reduce row init-val (map vector pre-row (rest pre-row) str2))))
 
+
+;;   Author: PLIQUE Guillaume (Yomguithereal)
+;;   Source: https://gist.github.com/vishnuvyas/958488
 (defn levenshtein
   "Compute the levenshtein distance (a.k.a edit distance) between two strings.
   Informally, the Levenshtein distance between two words is the minimum number
