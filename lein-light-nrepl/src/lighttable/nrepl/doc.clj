@@ -9,6 +9,26 @@
             [cljs.analyzer :as ana])
   (:import java.net.URL java.io.File))
 
+(defn- next-row
+  "computes the value of the next row of the distance matrix based on the
+  values from the previous row"
+  [pre-row char1 str2]
+  (let [init-val [(inc (first pre-row))]
+        row   (fn [crow [diagonal above char2]]
+                       (let [dist (if (= char2 char1) diagonal
+                                    (inc (min diagonal above (peek crow))))]
+                         (conj crow dist)))]
+    (reduce row init-val (map vector pre-row (rest pre-row) str2))))
+
+(defn levenshtein
+  "Compute the levenshtein distance (a.k.a edit distance) between two strings.
+  Informally, the Levenshtein distance between two words is the minimum number
+  of single-character edits (i.e. insertions, deletions or substitutions)
+  required to change one word into the other"
+  [str1 str2]
+  (let [first-row  (range (inc (count str2)))]
+    (peek (reduce #(next-row %1 %2 str2) first-row str1))))
+
 (defn clean-meta [m]
   (when m
     (-> m
@@ -35,8 +55,10 @@
         )))
 
 (defn find-doc [search]
-    (let [ms (concat (mapcat #(sort-by :name (map meta (vals (ns-interns %))))
-                             (all-ns)))]
+    (let [all-interns (vals (apply merge (map ns-interns (all-ns))))
+          with-dist  #(hash-map :dist (levenshtein search (str (:name %))) :meta %)
+          dist-metas  (into [] (comp (map meta) (map with-dist)) all-interns)
+          ms          (map :meta (sort-by :dist dist-metas))]
       (for [m ms
               :when (and (:doc m)
                          (not (:private m))
