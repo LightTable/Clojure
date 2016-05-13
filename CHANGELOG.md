@@ -1,5 +1,8 @@
 #Changes
 
+## 0.3.3
+* Feature to show exceptions collapsible (tx to @carocad)
+
 ## 0.3.2
 
 * Fix multiple project files not sharing one connection for Clojure >= 1.7

@@ -39,7 +39,7 @@
                init)
         lein-light-version (if (maintained-clojure-version? clj-version)
                              ;; Maintained lein-light-nrepl
-                             "0.3.2"
+                             "0.3.3"
                              ;; Deprecated/unmaintained lein-light-nrepl
                              "0.1.3")
         profile {:dependencies [['lein-light-nrepl/lein-light-nrepl lein-light-version]
