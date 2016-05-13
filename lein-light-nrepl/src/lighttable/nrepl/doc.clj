@@ -65,16 +65,17 @@
 
 (defn find-doc
   "look for a var with name 'search' among all namespaces. Only public
-  vars with docstring are returned. Returns a list of metadata hash-maps
-  sorted by their levenshtein distance with the 'search' input"
+  vars with docstring are returned. Returns a list of metadata (max 30)
+  hash-maps sorted by their levenshtein distance with the 'search' input"
   [search]
-    (let [all-vars    (vals (apply merge (map ns-interns (all-ns))))
-          with-dist  #(hash-map :dist (levenshtein search (str (:name %))) :meta %)
-          dist-metas  (into [] (comp (map meta) (filter :doc) (remove :private)
-                                     (map clean-meta) (map format-result)
-                                     (map with-dist))
+  (let [with-dist  #(hash-map :dist (levenshtein search (str (:name %)))
+                              :meta %)
+        all-vars    (vals (apply merge (map ns-interns (all-ns))))
+        dist-metas  (into [] (comp (map meta) (filter :doc) (remove :private)
+                                   (map clean-meta) (map format-result)
+                                   (map with-dist))
                             all-vars)]
-      (map :meta (sort-by :dist dist-metas))))
+      (take 30 (map :meta (sort-by :dist dist-metas)))))
 
 (def jar-temp-files
   "Maps jar-url paths to temp files"
