@@ -32,7 +32,10 @@
   (let [first-row  (range (inc (count str2)))]
     (peek (reduce #(next-row %1 %2 str2) first-row str1))))
 
-(defn clean-meta [m]
+(defn clean-meta
+  "returns a hash-map with only these keys: :ns :name :doc :arglists
+  :file :line :macro and updates :ns to a string"
+  [m]
   (when m
     (-> m
         (select-keys [:ns :name :doc :arglists :file :line :macro])
@@ -42,7 +45,10 @@
 (defn str-contains? [orig search]
   (> (.indexOf orig search) -1))
 
-(defn format-result [m]
+(defn format-result
+  "returns a hash-map with :args as the original :arglists value (converted to
+  a string and dissoc from the original)"
+  [m]
   (when m
     (-> m
         (assoc :args (-> m :arglists str))
@@ -57,7 +63,11 @@
         (dissoc :arglists)
         )))
 
-(defn find-doc [search]
+(defn find-doc
+  "look for a var with name 'search' among all namespaces. Only public
+  vars with docstring are returned. Returns a list of metadata hash-maps
+  sorted by their levenshtein distance with the 'search' input"
+  [search]
     (let [all-vars    (vals (apply merge (map ns-interns (all-ns))))
           with-dist  #(hash-map :dist (levenshtein search (str (:name %))) :meta %)
           dist-metas  (into [] (comp (map meta) (filter :doc) (remove :private)
