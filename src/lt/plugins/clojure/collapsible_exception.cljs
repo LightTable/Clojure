@@ -9,12 +9,11 @@
 (def ^:private ^:const NOT_FOUND -1)
 
 (defn truncate
-  "truncate a string at newline or at 100 characters long"
+  "truncate a string at newline or at 100 characters long with priority
+  for the later"
   [text]
-  (when-not (empty? text)
-    (if (= NOT_FOUND (.indexOf text "\n"))
-      (subs text 0 100); take 100 characters
-      (first (clojure.string/split-lines text)))))
+  (when-not (empty? text) ; take 100 characters
+    (-> (clojure.string/split-lines text) (first) (subs 0 100))))
 
 (defn ->collapse-class [this summary]
   (str "inline-exception result-mark"
