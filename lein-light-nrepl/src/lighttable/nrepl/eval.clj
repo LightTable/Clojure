@@ -53,7 +53,17 @@
   (if (instance? clojure.lang.IObj thing)
     (meta thing)))
 
-(defn clean-serialize [res & [opts]]
+(defn clean-serialize
+  "stringify the result 'res' into a form appropiate to its type. Defaults to
+  using 'pr-str' for most types.
+
+  Allowed options:
+  :print-length, restrict length of stringified results to it. Defaults to 1000
+  :allow-var?, whether to return a var itself or its stringified version.
+               Defaults to nil
+  :result, whether to return an atom itself or its content. Defaults to nil
+  :verbatim, whether to return an string itself or its 'pr-str' version"
+  [res & [opts]]
   (binding [*print-length* (or (:print-length opts) *print-length* 1000)]
     (cond
      (fn? res) 'fn
@@ -70,7 +80,9 @@
      (and (string? res) (:verbatim opts)) res
      :else (pr-str res))))
 
-(defn truncate [v]
+(defn truncate
+  "useless function. Same as 'identity'"
+  [v]
   v)
 
 (defn ->result [opts f]
@@ -118,7 +130,10 @@
     (str (reduce str "" (repeat (:start meta 0) "\n"))
          code)))
 
-(defn watch [v meta]
+(defn watch
+  "stringify result-value 'v' with pretty-print, sends it back to Lighttable
+  and returns the value itself to continue the evaling call"
+  [v meta]
   (let [ppv (with-out-str (pprint v))
         data {:meta meta :result (subs ppv 0 (dec (count ppv)))}]
     (core/safe-respond-to (:obj meta) :editor.eval.clj.watch data))
