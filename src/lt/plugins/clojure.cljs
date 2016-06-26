@@ -68,6 +68,7 @@
           (run-local-server (clients/client! :nrepl.client))))))
 
 (behavior ::on-eval.clj
+          :desc "Clojure: Eval editor content"
           :triggers #{:eval}
           :reaction (fn [editor]
                       (object/raise clj-lang :eval! {:origin editor
@@ -75,6 +76,7 @@
                                                              :print-length (object/raise-reduce editor :clojure.print-length+ nil)
                                                              :code (watches/watched-range editor nil nil nil))})))
 (behavior ::on-eval.cljs
+          :desc "Clojurescript: Eval editor content"
           :triggers #{:eval}
           :reaction (fn [editor]
                       (object/raise clj-lang :eval! {:origin editor
@@ -87,6 +89,7 @@
                                                                     "(set! js/COMPILED js/COMPILED-temp)"))})))
 
 (behavior ::on-eval.one
+          :desc "Clojure(script): Eval a single form in editor"
           :triggers #{:eval.one}
           :reaction (fn [editor]
                       (let [code (watches/watched-range editor nil nil nil)
@@ -103,12 +106,17 @@
                                                        :info info}))))
 
 
-(defn fill-placeholders [editor exp]
+(defn fill-placeholders
+  "replace editor-selection-flags (placeholders) inside exp with the currently
+  selected code in the editor"
+  [editor exp]
   (-> exp
       (string/replace "__SELECTION*__" (pr-str (ed/selection editor)))
       (string/replace "__SELECTION__" (ed/selection editor))))
 
 (behavior ::on-eval.custom
+          :desc "Clojure(script): Eval a form that has been wrapped by a custom code,
+                 thus changing the result. Ilustrative example: (eval (time form)) instead of (eval form)"
           :triggers #{:eval.custom}
           :reaction (fn [editor exp opts]
                       (let [code (fill-placeholders editor exp)
@@ -176,6 +184,8 @@
         (= 'lighttable (second (reader/read-string (:content (files/open-sync project-file))))))))
 
 (behavior ::eval!
+          :desc "Clojure(script): Send event information for evaluation to the appropiate nREPL
+                 or LightTable-UI client"
           :triggers #{:eval!}
           :reaction (fn [this event]
                       (let [{:keys [info origin]} event
@@ -263,6 +273,8 @@
                       (notifos/done-working)))
 
 (behavior ::cljs-result
+          :desc "Clojurescript: Receive a cljs result and dispatches it according
+                 to its appropiate result type. Defaults to :inline"
           :triggers #{:editor.eval.cljs.result}
           :reaction (fn [obj res]
                       (notifos/done-working)
@@ -270,6 +282,7 @@
                             ev (->dottedkw :editor.eval.cljs.result type)]
                         (object/raise obj ev res))))
 
+;; this is probably to handle find and replace source code in a CLJS editor
 (behavior ::cljs-result.replace
           :triggers #{:editor.eval.cljs.result.replace}
           :reaction (fn [obj res]
@@ -277,6 +290,7 @@
                         (notifos/set-msg! err {:class "error"})
                         (ed/replace-selection obj  (unescape-unicode (or (:result res) ""))))))
 
+;; this is probably to handle result without any output. For example: 'Compilation succeded', 'nREPL connected' and so on
 (behavior ::cljs-result.statusbar
           :triggers #{:editor.eval.cljs.result.statusbar}
           :reaction (fn [obj res]
@@ -285,6 +299,8 @@
                         (notifos/set-msg! (unescape-unicode (or (:result res) "")) {:class "result"}))))
 
 (behavior ::cljs-result.inline
+          :desc "Clojurescript: Takes a cljs-code evaluation-result and dispatches it as
+                an exception or as an inline-result"
           :triggers #{:editor.eval.cljs.result.inline}
           :reaction (fn [obj res]
                       (let [meta (:meta res)
@@ -294,6 +310,7 @@
                           (object/raise obj :editor.eval.cljs.exception res :passed)
                           (object/raise obj :editor.result (unescape-unicode (or (:result res) "")) loc)))))
 
+;; this is probably the same as ::cljs-result.inline but put the result widget somewhere else
 (behavior ::cljs-result.inline-at-cursor
           :triggers #{:editor.eval.cljs.result.inline-at-cursor}
           :reaction (fn [obj res]
@@ -316,6 +333,8 @@
                                                     :meta meta})))))
 
 (behavior ::clj-result
+          :desc "Clojure: Receive a clj result and dispatches it according
+                 to its appropiate result type. Defaults to :inline"
           :triggers #{:editor.eval.clj.result}
           :reaction (fn [obj res]
                       (notifos/done-working)
@@ -323,6 +342,7 @@
                             ev (->dottedkw :editor.eval.clj.result type)]
                         (object/raise obj ev res))))
 
+;; this is probably to handle find and replace source code in a CLJ editor
 (behavior ::clj-result.replace
           :triggers #{:editor.eval.clj.result.replace}
           :reaction (fn [obj res]
@@ -334,6 +354,7 @@
                           (notifos/set-msg! (:result res) {:class "error"})
                           (ed/replace-selection obj (:result result))))))
 
+;; this is probably to handle result without any output. For example: 'Compilation succeded', 'nREPL connected' and so on
 (behavior ::clj-result.statusbar
           :triggers #{:editor.eval.clj.result.statusbar}
           :reaction (fn [obj res]
@@ -346,6 +367,8 @@
                           (notifos/set-msg! (:result result) {:class "result"})))))
 
 (behavior ::clj-result.inline
+          :desc "Clojurescript: Takes a cljs-code evaluation-result and dispatches it as
+                an exception or as an inline-result"
           :triggers #{:editor.eval.clj.result.inline}
           :reaction (fn [obj res]
                       (doseq [result (-> res :results)
@@ -354,9 +377,9 @@
                                          :start-line (dec (:line meta))}]]
                         (if (:stack result)
                           (object/raise obj :editor.eval.clj.exception result :passed)
-                          (do
-                            (object/raise obj :editor.result (:result result) loc))))))
+                          (object/raise obj :editor.result (:result result) loc)))))
 
+;; this is probably the same as ::clj-result.inline but put the result widget somewhere else
 (behavior ::clj-result.inline-at-cursor
           :triggers #{:editor.eval.clj.result.inline-at-cursor}
           :reaction (fn [obj res]
@@ -366,8 +389,7 @@
                                          :start-line (-> res :meta :start)}]]
                         (if (:stack result)
                           (object/raise obj :editor.eval.clj.exception result :passed)
-                          (do
-                            (object/raise obj :editor.result (:result result) loc))))))
+                          (object/raise obj :editor.result (:result result) loc)))))
 
 (behavior ::clj-result.return
           :triggers #{:editor.eval.clj.result.return}
@@ -382,6 +404,9 @@
                                                     :meta meta})))))
 
 (behavior ::clj-exception
+          :desc "Clojure: Takes the result of evaling a clj form which resulted in an
+                 exception. Displays a message in the status bar and an exception widget
+                 with the stacktrace"
           :triggers #{:editor.eval.clj.exception}
           :reaction (fn [obj res passed?]
                       (when-not passed?
@@ -390,10 +415,12 @@
                             loc {:line (dec (:end-line meta)) :ch (:end-column meta 0)
                                  :start-line (dec (:line meta 1))}]
                         (notifos/set-msg! (:result res) {:class "error"})
-                        (object/raise obj :editor.exception (:stack res) loc))
-                      ))
+                        (object/raise obj :editor.exception (:stack res) loc))))
 
 (behavior ::cljs-exception
+          :desc "Clojurescript: Takes the result of evaling a cljs form which resulted in an
+                 exception. Displays a message in the status bar and an exception widget with
+                 the stacktrace"
           :triggers #{:editor.eval.cljs.exception}
           :reaction (fn [obj res passed?]
                       (when-not passed?
@@ -413,9 +440,10 @@
                                       msg
                                       "Unknown error")]
                         (notifos/set-msg! msg {:class "error"})
-                        (object/raise obj :editor.exception stack loc))
-                      ))
+                        (object/raise obj :editor.exception stack loc))))
 
+;; this is probably to avoid returning (print expr) as an inline result, instead sends it
+;; to the console
 (behavior ::eval-print
           :triggers #{:editor.eval.clj.print}
           :reaction (fn [this str]
@@ -424,9 +452,10 @@
                                           :line (when (object/has-tag? this :nrepl.client)
                                                   "stdout")
                                           :id (:id str)
-                                          :content (:out str)}
-                                         ))))
+                                          :content (:out str)}))))
 
+;; this is probably to avoid returning (print expr) as an inline result, instead sends it
+;; to the console but as an error element (red css color and so)
 (behavior ::eval-print-err
           :triggers #{:editor.eval.clj.print.err}
           :reaction (fn [this str]
@@ -517,18 +546,33 @@
 ;; watches
 ;;****************************************************
 
+;; For more information on watches check
+;; Original anouncement: https://groups.google.com/forum/#!msg/light-table-discussion/lyFzPGI2XMs/ec8T1OUPvMsJ
+;; blog posts: http://scattered-thoughts.net/blog/2014/01/27/were-not-even-trying/?utm_source=dlvr.it&utm_medium=twitter
+;;             https://medium.com/@zindlerb/guide-to-light-table-watches-fad560f698d3#.oqwq991sx
+;; fancy Rolex watches plugin: https://groups.google.com/forum/#!topic/light-table-discussion/NQWGC0vVHMY
+
 (behavior ::cljs-watch-src
+          :desc "Clojurescript: wraps the watched source code with a call to 'js/lttools.watch' to catch
+                its result and send it back to LightTable while continuing normal evaluation of an expression.
+                (Check the wrapping function for more information)"
           :triggers #{:watch.src+}
           :reaction (fn [editor cur meta src]
                       (let [meta (assoc meta :ev :editor.eval.cljs.watch)]
                         (str "(js/lttools.watch " src " (clj->js " (pr-str meta) "))"))))
 
 (behavior ::clj-watch-src
+          :desc "Clojure: wraps the watched source code with a call to 'lighttable.nrepl.eval/watch' to catch
+                its result and send it back to LightTable while continuing normal evaluation of an expression.
+                (Check the wrapping function for more information)"
           :triggers #{:watch.src+}
           :reaction (fn [editor cur meta src]
                       (str "(lighttable.nrepl.eval/watch " src " " (pr-str meta) ")")))
 
-(defn fill-watch-placeholders [exp src meta watch]
+(defn fill-watch-placeholders
+  "replace editor-selection-flags (placeholders) for custom watches inside exp
+  with the src-code to be watched"
+  [exp src meta watch]
   (-> exp
       (string/replace "\n" " ")
       (string/replace "__SELECTION*__" (pr-str src))
@@ -537,12 +581,18 @@
       (string/replace #"__\|(.*)\|__" watch)))
 
 (behavior ::cljs-watch-custom-src
+          :desc "Clojurescript: prepare exp for watching by filling its placeholders and wrapping
+                its watcher-code with custom call to :editor.eval.cljs.watch"
           :triggers #{:watch.custom.src+}
           :reaction (fn [editor cur meta opts src]
-                      (let [watch (str "(js/lttools.raise " (:obj meta) " :editor.eval.cljs.watch {:meta " (pr-str (merge (dissoc opts :exp) meta)) " :result $1})")]
+                      (let [watch (str "(js/lttools.raise " (:obj meta)
+                                           " :editor.eval.cljs.watch {:meta " (pr-str (merge (dissoc opts :exp) meta))
+                                                                      " :result $1})")]
                         (fill-watch-placeholders (:exp opts) src meta watch))))
 
 (behavior ::clj-watch-custom-src
+          :desc "Clojure: prepare exp for watching by filling its placeholders and wrapping
+                          its watcher-code with custom call to :editor.eval.cljs.watch"
           :triggers #{:watch.custom.src+}
           :reaction (fn [editor cur meta opts src]
                       (let [wrapped (if (:verbatim opts)
@@ -551,6 +601,7 @@
                             watch (str "(lighttable.nrepl.core/safe-respond-to " (:obj meta) " :editor.eval.clj.watch {:meta " (pr-str (merge (dissoc opts :exp) meta)) " :result " wrapped "})")]
                         (fill-watch-placeholders (:exp opts) src meta watch))))
 
+;; this is probably to update the value of watches during evaluation of a form
 (behavior ::cljs-watch-result
           :triggers #{:editor.eval.cljs.watch}
           :reaction (fn [editor res]
@@ -564,6 +615,7 @@
                               str-result (util/escape str-result)]
                           (object/raise (:inline-result watch) :update! str-result)))))
 
+;; this is probably to update the value of watches during evaluation of a form
 (behavior ::clj-watch-result
           :triggers #{:editor.eval.clj.watch}
           :reaction (fn [editor res]
@@ -578,6 +630,8 @@
 ;;****************************************************
 
 (behavior ::clj-doc
+          :desc "Clojure: gets the symbol at the cursor position and request its
+                 docstring from the nREPL"
           :triggers #{:editor.doc}
           :reaction (fn [editor]
                       (let [token (find-symbol-at-cursor editor)
@@ -593,8 +647,7 @@
                                                            :info info
                                                            :origin editor
                                                            :create try-connect})
-                                        command info :only editor)))
-                      ))
+                                        command info :only editor)))))
 
 (behavior ::print-clj-doc
           :triggers #{:editor.clj.doc}
@@ -617,6 +670,8 @@
           (assoc token-left :loc loc)))))
 
 (behavior ::cljs-doc
+          :desc "Clojurescript: gets the symbol at the cursor position and request its
+                 docstring from the nREPL"
           :triggers #{:editor.doc}
           :reaction (fn [editor]
                       (let [token (find-symbol-at-cursor editor)
@@ -643,16 +698,20 @@
                           (object/raise editor :editor.doc.show! result)))))
 
 (behavior ::clj-doc-search
+          :desc "Clojure: Links the 'Search language docs' input-text on the sidebar
+                with a trigger to :docs.clj.search to retrieve all the documentation
+                on a user-input"
           :triggers #{:types+}
           :reaction (fn [this cur]
-                      (conj cur {:label "clj" :trigger :docs.clj.search :file-types #{"Clojure"}})
-                      ))
+                      (conj cur {:label "clj" :trigger :docs.clj.search :file-types #{"Clojure"}})))
 
 (behavior ::cljs-doc-search
+          :desc "Clojurescript: Links the 'Search language docs' input-text on the sidebar
+                with a trigger to :docs.clj.search to retrieve all the documentation
+                on a user-input"
           :triggers #{:types+}
           :reaction (fn [this cur]
-                      (conj cur {:label "cljs" :trigger :docs.cljs.search :file-types #{"ClojureScript"}})
-                      ))
+                      (conj cur {:label "cljs" :trigger :docs.cljs.search :file-types #{"ClojureScript"}})))
 
 ;;****************************************************
 ;; autocomplete
