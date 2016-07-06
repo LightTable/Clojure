@@ -282,16 +282,16 @@
                             ev (->dottedkw :editor.eval.cljs.result type)]
                         (object/raise obj ev res))))
 
-;; this is probably to handle find and replace source code in a CLJS editor
 (behavior ::cljs-result.replace
+          :desc "Clojurescript: replace current selection with the result of an evaluation"
           :triggers #{:editor.eval.cljs.result.replace}
           :reaction (fn [obj res]
                       (if-let [err (or (:stack res) (:ex res))]
                         (notifos/set-msg! err {:class "error"})
                         (ed/replace-selection obj  (unescape-unicode (or (:result res) ""))))))
 
-;; this is probably to handle result without any output. For example: 'Compilation succeded', 'nREPL connected' and so on
 (behavior ::cljs-result.statusbar
+          :desc "Clojurescript: show the result of an evaluation on the statusbar"
           :triggers #{:editor.eval.cljs.result.statusbar}
           :reaction (fn [obj res]
                       (if-let [err (or (:stack res) (:ex res))]
@@ -299,7 +299,7 @@
                         (notifos/set-msg! (unescape-unicode (or (:result res) "")) {:class "result"}))))
 
 (behavior ::cljs-result.inline
-          :desc "Clojurescript: Takes a cljs-code evaluation-result and dispatches it as
+          :desc "Clojurescript: shows the result of an evaluation as an inline-widget. Dispatches it as
                 an exception or as an inline-result"
           :triggers #{:editor.eval.cljs.result.inline}
           :reaction (fn [obj res]
@@ -333,7 +333,7 @@
                                                     :meta meta})))))
 
 (behavior ::clj-result
-          :desc "Clojure: Receive a clj result and dispatches it according
+          :desc "Clojure: Receive an eval! result and dispatches it according
                  to its appropiate result type. Defaults to :inline"
           :triggers #{:editor.eval.clj.result}
           :reaction (fn [obj res]
@@ -342,8 +342,8 @@
                             ev (->dottedkw :editor.eval.clj.result type)]
                         (object/raise obj ev res))))
 
-;; this is probably to handle find and replace source code in a CLJ editor
 (behavior ::clj-result.replace
+          :desc "Clojure: replace current selection with the result of an evaluation"
           :triggers #{:editor.eval.clj.result.replace}
           :reaction (fn [obj res]
                       (doseq [result (-> res :results)
@@ -354,8 +354,8 @@
                           (notifos/set-msg! (:result res) {:class "error"})
                           (ed/replace-selection obj (:result result))))))
 
-;; this is probably to handle result without any output. For example: 'Compilation succeded', 'nREPL connected' and so on
 (behavior ::clj-result.statusbar
+          :desc "Clojure: show the result of an evaluation on the statusbar"
           :triggers #{:editor.eval.clj.result.statusbar}
           :reaction (fn [obj res]
                       (doseq [result (-> res :results)
@@ -367,8 +367,8 @@
                           (notifos/set-msg! (:result result) {:class "result"})))))
 
 (behavior ::clj-result.inline
-          :desc "Clojurescript: Takes a cljs-code evaluation-result and dispatches it as
-                an exception or as an inline-result"
+          :desc "Clojure: displays the result of an eval! as an inline-widget.
+                 Dispatches it as an exception or as an inline-result"
           :triggers #{:editor.eval.clj.result.inline}
           :reaction (fn [obj res]
                       (doseq [result (-> res :results)
@@ -404,9 +404,8 @@
                                                     :meta meta})))))
 
 (behavior ::clj-exception
-          :desc "Clojure: Takes the result of evaling a clj form which resulted in an
-                 exception. Displays a message in the status bar and an exception widget
-                 with the stacktrace"
+          :desc "Clojure: displays an inline widget with stacktrace information and
+                 a summary in the statusbar"
           :triggers #{:editor.eval.clj.exception}
           :reaction (fn [obj res passed?]
                       (when-not passed?
