@@ -9,7 +9,7 @@
             [lighttable.nrepl.eval :as eval]
             [lighttable.nrepl.cljs :as cljs]
             [lighttable.nrepl.doc :as doc]
-            lighttable.nrepl.auto-complete
+            [lighttable.nrepl.auto-complete :as auto-complete]
             [clojure.repl :as repl]))
 
 (defn with-lt-data [msg]
