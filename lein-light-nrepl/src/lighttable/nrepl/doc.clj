@@ -9,7 +9,33 @@
             [cljs.analyzer :as ana])
   (:import java.net.URL java.io.File))
 
-(defn clean-meta [m]
+(defn- next-row
+  "Computes the value of the next row of the distance matrix, based on the
+  values from the previous row."
+  [pre-row char1 str2]
+  (let [init-val [(inc (first pre-row))]
+        row   (fn [crow [diagonal above char2]]
+                       (let [dist (if (= char2 char1) diagonal
+                                    (inc (min diagonal above (peek crow))))]
+                         (conj crow dist)))]
+    (reduce row init-val (map vector pre-row (rest pre-row) str2))))
+
+
+;;   Author: PLIQUE Guillaume (Yomguithereal)
+;;   Source: https://gist.github.com/vishnuvyas/958488
+(defn levenshtein
+  "Compute the levenshtein distance (a.k.a edit distance) between two strings.
+  Informally, the Levenshtein distance between two words is the minimum number
+  of single-character edits (i.e. insertions, deletions or substitutions)
+  required to change one word into the other"
+  [str1 str2]
+  (let [first-row  (range (inc (count str2)))]
+    (peek (reduce #(next-row %1 %2 str2) first-row str1))))
+
+(defn clean-meta
+  "returns a hash-map with only these keys: :ns :name :doc :arglists
+  :file :line :macro and updates :ns to a string"
+  [m]
   (when m
     (-> m
         (select-keys [:ns :name :doc :arglists :file :line :macro])
@@ -19,7 +45,10 @@
 (defn str-contains? [orig search]
   (> (.indexOf orig search) -1))
 
-(defn format-result [m]
+(defn format-result
+  "Returns a hash-map with `:args` as the original `:arglists` value. `:args` is converted to
+  a string and dissociated from `:arglists`."
+  [m]
   (when m
     (-> m
         (assoc :args (-> m :arglists str))
@@ -34,16 +63,21 @@
         (dissoc :arglists)
         )))
 
-(defn find-doc [search]
-    (let [ms (concat (mapcat #(sort-by :name (map meta (vals (ns-interns %))))
-                             (all-ns)))]
-      (for [m ms
-              :when (and (:doc m)
-                         (not (:private m))
-                         (or (str-contains? (:doc m) search)
-                             (str-contains? (str (:ns m)) search)
-                             (str-contains? (str (:name m)) search)))]
-               (format-result (clean-meta m)))))
+(defn find-doc
+  "Look for a var with name `search` among all namespaces. Only public
+  vars with docstring are returned.
+
+  Returns a list of metadata (max 30) hash-maps sorted by their levenshtein
+  distance with the `search` input."
+  [search]
+  (let [with-dist  #(hash-map :dist (levenshtein search (str (:name %)))
+                              :meta %)
+        all-vars    (vals (apply merge (map ns-interns (all-ns))))
+        dist-metas  (into [] (comp (map meta) (filter :doc) (remove :private)
+                                   (map clean-meta) (map format-result)
+                                   (map with-dist))
+                            all-vars)]
+      (take 30 (map :meta (sort-by :dist dist-metas)))))
 
 (def jar-temp-files
   "Maps jar-url paths to temp files"
