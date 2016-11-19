@@ -7,7 +7,7 @@
                  [org.clojure/tools.nrepl "0.2.10"]
                  [commons-io/commons-io "2.4"]
                  [org.clojure/tools.reader "0.9.2"]
-                 [clj-stacktrace "0.2.8"]
+                 [io.aviso/pretty "0.1.25"]
                  [org.clojure/clojurescript "0.0-3308"
                    :exclusions [org.apache.ant/ant]]
                  [clojure-complete "0.2.4"]]
