@@ -54,15 +54,16 @@
     (meta thing)))
 
 (defn clean-serialize
-  "stringify the result 'res' into a form appropiate to its type. Defaults to
-  using 'pr-str' for most types.
+  "Stringify the result `res` into a form appropiate to its type. Defaults to
+  using function `pr-str` for most types.
 
   Allowed options:
-  :print-length, restrict length of stringified results to it. Defaults to 1000
-  :allow-var?, whether to return a var itself or its stringified version.
-               Defaults to nil
-  :result, whether to return an atom itself or its content. Defaults to nil
-  :verbatim, whether to return an string itself or its 'pr-str' version"
+
+  - `:print-length` - Restricts length of stringified results to it. Defaults to 1000.
+  - `:allow-var?` - Whether to return a var itself or its stringified version.
+                  Defaults to nil.
+  - `:result` - Whether to return an atom itself or its content. Defaults to nil.
+  - `:verbatim` - Whether to return an string itself or its 'pr-str' version."
   [res & [opts]]
   (binding [*print-length* (or (:print-length opts) *print-length* 1000)]
     (cond
@@ -81,7 +82,6 @@
      :else (pr-str res))))
 
 (defn truncate
-  "useless function. Same as 'identity'"
   [v]
   v)
 
@@ -131,8 +131,8 @@
          code)))
 
 (defn watch
-  "stringify result-value 'v' with pretty-print, sends it back to Lighttable
-  and returns the value itself to continue the evaling call"
+  "Stringify result-value `v` with pretty-print, send it back to Light Table,
+  and then return the value itself to continue the evaling call."
   [v meta]
   (let [ppv (with-out-str (pprint v))
         data {:meta meta :result (subs ppv 0 (dec (count ppv)))}]
