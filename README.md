@@ -105,9 +105,6 @@ If your Clojure(Script) project fails to connect to LightTable, try these troubl
   Try resolving conflicts as suggested by output that starts with `Consider using these exclusions:`.
 * If still unable to connect, make sure you've moved out Leiningen's dependency-altering files and file an issue with the full failure message, your project's project.clj and other standard [bug information](https://github.com/LightTable/LightTable/blob/master/CONTRIBUTING.md#bugs).
 
-## License
-
-Distributed under the MIT License, see license.md for the full text.
 
 ## For Committers
 
